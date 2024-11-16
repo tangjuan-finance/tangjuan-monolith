@@ -70,4 +70,4 @@ def webhook():
 @app.route('/')
 @app.route('/index')
 def index():
-    return "Hello, World! Get another fix!! 😅"
+    return "Hello, World! Not sure if works 😅"
