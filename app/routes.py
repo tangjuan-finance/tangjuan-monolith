@@ -26,11 +26,11 @@ def webhook():
         # if not ua.startswith('GitHub-Hookshot/'):
         #     abort(abort_code)
 
-        event = request.headers.get('X-GitHub-Event')
-        if event == "ping":
-            return json.dumps({'msg': 'Hi!'})
-        if event != "push":
-            return json.dumps({'msg': "Wrong event type"})
+        # event = request.headers.get('X-GitHub-Event')
+        # if event == "ping":
+        #     return json.dumps({'msg': 'Hi!'})
+        # if event != "push":
+        #     return json.dumps({'msg': "Wrong event type"})
 
         x_hub_signature = request.headers.get('X-Hub-Signature')
         # webhook content type should be application/json for request.data to have the payload
@@ -38,17 +38,17 @@ def webhook():
         if not is_valid_signature(x_hub_signature, request.data, W_SECRET):
             print('Deploy signature failed: {sig}'.format(sig=x_hub_signature))
             # abort(abort_code)
-            os.abort()
+            return '', 404
 
         payload = request.get_json()
         if payload is None:
             print('Deploy payload is empty: {payload}'.format(
                 payload=payload))
             # abort(abort_code)
-            os.abort()
+            return '', 404
 
-        if payload['ref'] != 'refs/heads/master':
-            return json.dumps({'msg': 'Not master; ignoring'})
+        if payload['ref'] != 'refs/heads/main':
+            return json.dumps({'msg': 'Not main; ignoring'})
         
         repo = git.Repo('./f4lazylifes')
         origin = repo.remotes.origin
@@ -70,4 +70,4 @@ def webhook():
 @app.route('/')
 @app.route('/index')
 def index():
-    return "Hello, World! This is a test for commit!!"
+    return "Hello, World! Get another fix!! 😅"
