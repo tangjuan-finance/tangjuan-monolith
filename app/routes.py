@@ -5,7 +5,7 @@ import git
 import os
 import json
 
-W_SECRET = os.getenv("W_SECRET")
+W_SECRET = app.config['W_SECRET']
 
 @app.route('/update_server', methods=['POST'])
 def webhook():
