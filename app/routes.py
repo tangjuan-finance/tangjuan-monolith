@@ -12,9 +12,9 @@ def webhook():
         origin.pull()
         return 'Updated PythonAnywhere successfully', 200
     else:
-            return 'Wrong event type', 400
+        return 'Wrong event type', 400
 
 @app.route('/')
 @app.route('/index')
 def index():
-    return "Hello, World!"
+    return "Hello, World! This is a test for commit!!"
