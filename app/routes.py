@@ -1,6 +1,6 @@
 from app import app
 from flask import request
-from lib import is_valid_signature
+from app.lib import is_valid_signature
 import git
 import os
 import json
