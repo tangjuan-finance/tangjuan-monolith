@@ -1,7 +1,6 @@
-from flask import Flask, request
+from app import app
+from flask import request
 import git
-
-app = Flask(__name__)
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -15,6 +14,7 @@ def webhook():
     else:
             return '', 400
 
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+@app.route('/')
+@app.route('/index')
+def index():
+    return "Hello, World!"
