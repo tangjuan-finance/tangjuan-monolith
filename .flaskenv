@@ -1,1 +1,2 @@
 FLASK_APP=f4lazylifes.py
+FLASK_DEBUG=1
