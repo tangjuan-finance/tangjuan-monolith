@@ -7,10 +7,10 @@ from app.models import User
 
 
 class EditProfileForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    about_me = TextAreaField('About me',
+    username = StringField('使用者名稱', validators=[DataRequired()])
+    about_me = TextAreaField('關於我',
                              validators=[Length(min=0, max=140)])
-    submit = SubmitField('Submit')
+    submit = SubmitField('送出')
 
     def __init__(self, original_username, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -21,8 +21,8 @@ class EditProfileForm(FlaskForm):
             user = db.session.scalar(sa.select(User).where(
                 User.username == username.data))
             if user is not None:
-                raise ValidationError('Please use a different username.')
+                raise ValidationError('請使用別的使用者名稱')
 
 
 class EmptyForm(FlaskForm):
-    submit = SubmitField('Submit')
+    submit = SubmitField('送出')

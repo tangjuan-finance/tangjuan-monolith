@@ -2,7 +2,7 @@
 {% import "bootstrap_wtf.html" as wtf %}
 
 {% block content %}
-    <h1>Sign In</h1>
+    <h1>登入</h1>
     {{ wtf.quick_form(form) }}
-    <p>New User? <a href="{{ url_for('auth.register') }}">Click to Register!</a></p>
+    <p>New User? <a href="{{ url_for('auth.register') }}">點擊已註冊</a></p>
 {% endblock %}
