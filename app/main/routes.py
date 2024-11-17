@@ -4,7 +4,7 @@ from flask import render_template, flash, redirect, url_for, request, \
 from flask_login import current_user, login_required
 import sqlalchemy as sa
 from app import db
-from app.main.forms import EditProfileForm, EmptyForm
+from app.main.forms import EditProfileForm
 from app.models import User
 from app.main import bp
 from app.lib import verify_signature
@@ -17,10 +17,9 @@ def before_request():
         current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
 
-W_SECRET = bp.config['W_SECRET']
-
 @bp.route('/update_server', methods=['POST'])
 def webhook():
+    W_SECRET = current_app.config['W_SECRET']
     if request.method == 'POST':
         signature_header = request.headers.get('X-Hub-Signature-256')
         # webhook content type should be application/json for request.data to have the payload
@@ -76,7 +75,7 @@ def edit_profile():
         current_user.about_me = form.about_me.data
         db.session.commit()
         flash('Your changes have been saved.')
-        return redirect(url_for('main.edit_profile'))
+        return redirect(url_for('main.user', username=current_user.username))
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.about_me.data = current_user.about_me
