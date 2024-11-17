@@ -13,7 +13,7 @@ def webhook():
         signature_header = request.headers.get('X-Hub-Signature-256')
         # webhook content type should be application/json for request.data to have the payload
         # request.data is empty in case of x-www-form-urlencoded
-        payload_body = request.body()
+        payload_body = request.data
         verify_signature(payload_body, W_SECRET, signature_header)
 
         payload = request.get_json()
@@ -25,7 +25,6 @@ def webhook():
 
         if payload['ref'] != 'refs/heads/main':
             return json.dumps({'msg': 'Not main; ignoring'})
-        
         repo = git.Repo('./f4lazylifes')
         origin = repo.remotes.origin
 
