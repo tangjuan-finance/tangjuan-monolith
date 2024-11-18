@@ -7,7 +7,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from hashlib import md5
 
-class User(UserMixin, db.Model):
+class TimestampMixin:
+    created: so.Mapped[datetime] = so.mapped_column(default=lambda: datetime.now(timezone.utc))
+    updated: so.Mapped[datetime] = so.mapped_column(default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+class User(UserMixin, TimestampMixin, db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     username: so.Mapped[str] = so.mapped_column(sa.String(64), index=True,
                                                 unique=True)
@@ -34,3 +38,31 @@ class User(UserMixin, db.Model):
 @login.user_loader
 def load_user(id):
     return db.session.get(User, int(id))
+
+class ScenarioExpense(db.Model):
+    left_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("scenario.id"), primary_key=True)
+    right_id: so.Mapped[int] = so.mapped_column(
+        sa.ForeignKey("expense.id"), primary_key=True
+    )
+    extra_data: so.Mapped[Optional[str]]
+    scenario: so.Mapped["Scenario"] = so.relationship(back_populates="expense")
+    expense: so.Mapped["Expense"] = so.relationship(back_populates="scenario")
+
+class Scenario(TimestampMixin, db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    name: so.Mapped[str] = so.mapped_column(sa.String(64))
+    description: so.Mapped[Optional[str]] = so.mapped_column(sa.Text)
+    expense: so.Mapped[so.WriteOnlyMapped["ScenarioExpense"]] = so.relationship(back_populates="scenario")
+
+    def __repr__(self):
+        return '<Scenario {}>'.format(self.username)
+
+class Expense(TimestampMixin, db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    name: so.Mapped[str] = so.mapped_column(sa.String(64))
+    amount: so.Mapped[str] = so.mapped_column(sa.String(64))
+    description: so.Mapped[Optional[str]] = so.mapped_column(sa.Text)
+    scenario: so.Mapped[so.WriteOnlyMapped["ScenarioExpense"]] = so.relationship(back_populates="expense")
+
+    def __repr__(self):
+        return '<Expense {}>'.format(self.username)
