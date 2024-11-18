@@ -53,17 +53,17 @@ class Scenario(TimestampMixin, db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     name: so.Mapped[str] = so.mapped_column(sa.String(64))
     description: so.Mapped[Optional[str]] = so.mapped_column(sa.Text)
-    expense: so.WriteOnlyMapped["ScenarioExpense"] = so.relationship(back_populates="scenario")
+    expense: so.Mapped[list["ScenarioExpense"]] = so.relationship(back_populates="scenario")
 
     def __repr__(self):
-        return '<Scenario {}>'.format(self.username)
+        return '<Scenario {}>'.format(self.name)
 
 class Expense(TimestampMixin, db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     name: so.Mapped[str] = so.mapped_column(sa.String(64))
     amount: so.Mapped[str] = so.mapped_column(sa.String(64))
     description: so.Mapped[Optional[str]] = so.mapped_column(sa.Text)
-    scenario: so.WriteOnlyMapped["ScenarioExpense"] = so.relationship(back_populates="expense")
+    scenario: so.Mapped[list["ScenarioExpense"]] = so.relationship(back_populates="expense")
 
     def __repr__(self):
-        return '<Expense {}>'.format(self.username)
+        return '<Expense {}>'.format(self.name)

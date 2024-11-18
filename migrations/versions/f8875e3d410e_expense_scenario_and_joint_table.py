@@ -1,8 +1,8 @@
-"""expense, scenario and joint table
+"""expense, scenario, and joint table
 
-Revision ID: 753e460f0973
+Revision ID: f8875e3d410e
 Revises: a11f326d87b6
-Create Date: 2024-11-18 21:46:05.515783
+Create Date: 2024-11-18 22:07:25.621330
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '753e460f0973'
+revision = 'f8875e3d410e'
 down_revision = 'a11f326d87b6'
 branch_labels = None
 depends_on = None
@@ -38,7 +38,8 @@ def upgrade():
     op.create_table('scenario_expense',
     sa.Column('left_id', sa.Integer(), nullable=False),
     sa.Column('right_id', sa.Integer(), nullable=False),
-    sa.Column('extra_data', sa.String(), nullable=True),
+    sa.Column('upper_raise_rate', sa.Numeric(), nullable=False),
+    sa.Column('lower_raise_rate', sa.Numeric(), nullable=False),
     sa.ForeignKeyConstraint(['left_id'], ['scenario.id'], ),
     sa.ForeignKeyConstraint(['right_id'], ['expense.id'], ),
     sa.PrimaryKeyConstraint('left_id', 'right_id')
