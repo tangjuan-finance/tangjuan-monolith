@@ -185,3 +185,28 @@ class House(TimestampMixin, BaseDescriptionMixin, db.Model):
 
     def __repr__(self):
         return '<House {}>'.format(self.name)
+    
+class ScenarioChild(db.Model):
+    left_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("scenario.id"), primary_key=True)
+    right_id: so.Mapped[int] = so.mapped_column(
+        sa.ForeignKey("child.id"), primary_key=True
+    )
+    born_at_age: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Age.id))
+    independent_year: so.Mapped[Optional[int]] = so.mapped_column(sa.ForeignKey(Age.id))
+    scenario: so.Mapped["Scenario"] = so.relationship(back_populates="child")
+    child: so.Mapped["Child"] = so.relationship(back_populates="scenario")
+
+class Child(TimestampMixin, BaseDescriptionMixin, db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    born_at_age: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Age.id))
+    independent_year: so.Mapped[Optional[int]] = so.mapped_column(sa.ForeignKey(Age.id))
+
+    #Ownership
+    owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), index=True)
+    owner: so.Mapped[User] = so.relationship(back_populates='children')
+
+    #Relationship to Scenario
+    scenario: so.Mapped[list["ScenarioChild"]] = so.relationship(back_populates="child")
+
+    def __repr__(self):
+        return '<Child {}>'.format(self.name)
