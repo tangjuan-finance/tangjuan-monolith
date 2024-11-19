@@ -47,6 +47,8 @@ class User(UserMixin, TimestampMixin, db.Model):
         back_populates='owner')
     salaries: so.WriteOnlyMapped['Salary'] = so.relationship(
         back_populates='owner')
+    investments: so.WriteOnlyMapped['Investment'] = so.relationship(
+        back_populates='owner')
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -75,6 +77,7 @@ class Scenario(TimestampMixin, BaseDescriptionMixin,  db.Model):
     #Many-to-Many Relationship
     expense: so.Mapped[list["ScenarioExpense"]] = so.relationship(back_populates="scenario")
     salary: so.Mapped[list["ScenarioSalary"]] = so.relationship(back_populates="scenario")
+    investment: so.Mapped[list["ScenarioInvestment"]] = so.relationship(back_populates="scenario")
 
     def __repr__(self):
         return '<Scenario {}>'.format(self.name)
@@ -126,3 +129,28 @@ class Salary(TimestampMixin, BaseYearIntervalMixin, BaseDescriptionMixin, db.Mod
 
     def __repr__(self):
         return '<Salary {}>'.format(self.name)
+    
+class ScenarioInvestment(BaseYearIntervalMixin, db.Model):
+    left_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("scenario.id"), primary_key=True)
+    right_id: so.Mapped[int] = so.mapped_column(
+        sa.ForeignKey("investment.id"), primary_key=True
+    )
+    upper_return_rate: so.Mapped[float] = so.mapped_column(sa.Numeric)
+    lower_return_rate: so.Mapped[float] = so.mapped_column(sa.Numeric)
+    percentage_from_saving: so.Mapped[float] = so.mapped_column(sa.Numeric)
+    scenario: so.Mapped["Scenario"] = so.relationship(back_populates="investment")
+    investment: so.Mapped["Investment"] = so.relationship(back_populates="scenario")
+
+class Investment(TimestampMixin, BaseYearIntervalMixin, BaseDescriptionMixin, db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    amount: so.Mapped[int] = so.mapped_column(sa.Integer)
+
+    #Ownership
+    owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), index=True)
+    owner: so.Mapped[User] = so.relationship(back_populates='investments')
+
+    #Relationship to Scenario
+    scenario: so.Mapped[list["ScenarioInvestment"]] = so.relationship(back_populates="investment")
+
+    def __repr__(self):
+        return '<Investment {}>'.format(self.name)
