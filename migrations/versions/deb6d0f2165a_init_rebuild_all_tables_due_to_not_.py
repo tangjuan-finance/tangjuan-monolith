@@ -1,8 +1,8 @@
 """init: rebuild all tables due to not define naming convention
 
-Revision ID: 6253ed006179
+Revision ID: deb6d0f2165a
 Revises: 
-Create Date: 2024-11-19 22:19:30.559746
+Create Date: 2024-11-19 22:54:52.994606
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6253ed006179'
+revision = 'deb6d0f2165a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -38,18 +38,18 @@ def upgrade():
         batch_op.create_index(batch_op.f('ix_user_email'), ['email'], unique=True)
         batch_op.create_index(batch_op.f('ix_user_username'), ['username'], unique=True)
 
-    op.create_table('Accident',
+    op.create_table('accident',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('upper_from_salary_ratio', sa.Numeric(), nullable=False),
     sa.Column('lower_from_salary_ratio', sa.Numeric(), nullable=False),
     sa.Column('owner_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=64), nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
-    sa.ForeignKeyConstraint(['owner_id'], ['user.id'], name=op.f('fk_Accident_owner_id_user')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_Accident'))
+    sa.ForeignKeyConstraint(['owner_id'], ['user.id'], name=op.f('fk_accident_owner_id_user')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_accident'))
     )
-    with op.batch_alter_table('Accident', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_Accident_owner_id'), ['owner_id'], unique=False)
+    with op.batch_alter_table('accident', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_accident_owner_id'), ['owner_id'], unique=False)
 
     op.create_table('child',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -146,12 +146,13 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('retire_age', sa.Integer(), nullable=False),
     sa.Column('accident_id', sa.Integer(), nullable=False),
+    sa.Column('investment_ratio', sa.Numeric(), nullable=False),
     sa.Column('owner_id', sa.Integer(), nullable=False),
     sa.Column('created', sa.DateTime(), nullable=False),
     sa.Column('updated', sa.DateTime(), nullable=False),
     sa.Column('name', sa.String(length=64), nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
-    sa.ForeignKeyConstraint(['accident_id'], ['Accident.id'], name=op.f('fk_scenario_accident_id_Accident')),
+    sa.ForeignKeyConstraint(['accident_id'], ['accident.id'], name=op.f('fk_scenario_accident_id_accident')),
     sa.ForeignKeyConstraint(['owner_id'], ['user.id'], name=op.f('fk_scenario_owner_id_user')),
     sa.ForeignKeyConstraint(['retire_age'], ['age.id'], name=op.f('fk_scenario_retire_age_age')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_scenario'))
@@ -259,10 +260,10 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_child_owner_id'))
 
     op.drop_table('child')
-    with op.batch_alter_table('Accident', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_Accident_owner_id'))
+    with op.batch_alter_table('accident', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_accident_owner_id'))
 
-    op.drop_table('Accident')
+    op.drop_table('accident')
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_user_username'))
         batch_op.drop_index(batch_op.f('ix_user_email'))
