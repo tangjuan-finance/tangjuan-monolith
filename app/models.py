@@ -49,7 +49,9 @@ class User(UserMixin, TimestampMixin, db.Model):
         back_populates='owner')
     investments: so.WriteOnlyMapped['Investment'] = so.relationship(
         back_populates='owner')
-
+    houses: so.WriteOnlyMapped['House'] = so.relationship(
+        back_populates='owner')    
+    
     def __repr__(self):
         return '<User {}>'.format(self.username)
 
@@ -78,6 +80,7 @@ class Scenario(TimestampMixin, BaseDescriptionMixin,  db.Model):
     expense: so.Mapped[list["ScenarioExpense"]] = so.relationship(back_populates="scenario")
     salary: so.Mapped[list["ScenarioSalary"]] = so.relationship(back_populates="scenario")
     investment: so.Mapped[list["ScenarioInvestment"]] = so.relationship(back_populates="scenario")
+    house: so.Mapped[list["ScenarioHouse"]] = so.relationship(back_populates="scenario")
 
     def __repr__(self):
         return '<Scenario {}>'.format(self.name)
@@ -154,3 +157,31 @@ class Investment(TimestampMixin, BaseYearIntervalMixin, BaseDescriptionMixin, db
 
     def __repr__(self):
         return '<Investment {}>'.format(self.name)
+
+class ScenarioHouse(db.Model):
+    left_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("scenario.id"), primary_key=True)
+    right_id: so.Mapped[int] = so.mapped_column(
+        sa.ForeignKey("house.id"), primary_key=True
+    )
+    buy_at_age: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Age.id))
+    sell_at_age: so.Mapped[Optional[int]] = so.mapped_column(sa.ForeignKey(Age.id))
+    scenario: so.Mapped["Scenario"] = so.relationship(back_populates="house")
+    house: so.Mapped["House"] = so.relationship(back_populates="scenario")
+
+class House(TimestampMixin, BaseDescriptionMixin, db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    amount: so.Mapped[int] = so.mapped_column(sa.Integer)
+    interest: so.Mapped[int] = so.mapped_column(sa.Integer)
+    loan_term: so.Mapped[int] = so.mapped_column(sa.Integer)
+    buy_at_age: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Age.id))
+    sell_at_age: so.Mapped[Optional[int]] = so.mapped_column(sa.ForeignKey(Age.id))
+
+    #Ownership
+    owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), index=True)
+    owner: so.Mapped[User] = so.relationship(back_populates='houses')
+
+    #Relationship to Scenario
+    scenario: so.Mapped[list["ScenarioHouse"]] = so.relationship(back_populates="house")
+
+    def __repr__(self):
+        return '<House {}>'.format(self.name)
