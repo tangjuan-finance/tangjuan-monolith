@@ -1,8 +1,8 @@
 """child and joint table
 
-Revision ID: 8a5688e104c2
+Revision ID: ba075eae09e2
 Revises: f3293807bb2b
-Create Date: 2024-11-19 17:50:38.646200
+Create Date: 2024-11-19 17:53:41.455499
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '8a5688e104c2'
+revision = 'ba075eae09e2'
 down_revision = 'f3293807bb2b'
 branch_labels = None
 depends_on = None

@@ -51,6 +51,8 @@ class User(UserMixin, TimestampMixin, db.Model):
         back_populates='owner')
     houses: so.WriteOnlyMapped['House'] = so.relationship(
         back_populates='owner')    
+    children: so.WriteOnlyMapped['Child'] = so.relationship(
+        back_populates='owner')  
     
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -81,6 +83,7 @@ class Scenario(TimestampMixin, BaseDescriptionMixin,  db.Model):
     salary: so.Mapped[list["ScenarioSalary"]] = so.relationship(back_populates="scenario")
     investment: so.Mapped[list["ScenarioInvestment"]] = so.relationship(back_populates="scenario")
     house: so.Mapped[list["ScenarioHouse"]] = so.relationship(back_populates="scenario")
+    child: so.Mapped[list["ScenarioChild"]] = so.relationship(back_populates="scenario")
 
     def __repr__(self):
         return '<Scenario {}>'.format(self.name)
@@ -210,3 +213,10 @@ class Child(TimestampMixin, BaseDescriptionMixin, db.Model):
 
     def __repr__(self):
         return '<Child {}>'.format(self.name)
+    
+# class Age(db.Model):
+#     id: so.Mapped[int] = so.mapped_column(primary_key=True)
+#     year: so.Mapped[int] = so.mapped_column(sa.SmallInteger)
+
+#     def __repr__(self):
+#         return '<Age {} years>'.format(self.year)
