@@ -50,9 +50,11 @@ class User(UserMixin, TimestampMixin, db.Model):
     investments: so.WriteOnlyMapped['Investment'] = so.relationship(
         back_populates='owner')
     houses: so.WriteOnlyMapped['House'] = so.relationship(
-        back_populates='owner')    
+        back_populates='owner')
     children: so.WriteOnlyMapped['Child'] = so.relationship(
-        back_populates='owner')  
+        back_populates='owner')
+    accidents: so.WriteOnlyMapped['Accident'] = so.relationship(
+        back_populates='owner')    
     
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -73,6 +75,9 @@ def load_user(id):
 
 class Scenario(TimestampMixin, BaseDescriptionMixin,  db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    retire_age: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Age.id),index=True)
+    accident_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("Accident.id"),index=True)
+    accident: so.Mapped["Accident"] = so.relationship(back_populates='scenarios')
 
     #Ownership
     owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),index=True)
@@ -214,9 +219,18 @@ class Child(TimestampMixin, BaseDescriptionMixin, db.Model):
     def __repr__(self):
         return '<Child {}>'.format(self.name)
     
-# class Age(db.Model):
-#     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-#     year: so.Mapped[int] = so.mapped_column(sa.SmallInteger)
+class Accident(BaseDescriptionMixin, db.Model):
+    # explicitly set the __tablename__ as the Foreign Key for Scenario are forward referance. 
+    __tablename__ = "Accident"
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    scenarios: so.WriteOnlyMapped['Scenario'] = so.relationship(
+        back_populates='accident')
+    upper_from_salary_ratio: so.Mapped[float] = so.mapped_column(sa.Numeric)
+    lower_from_salary_ratio: so.Mapped[float] = so.mapped_column(sa.Numeric)
 
-#     def __repr__(self):
-#         return '<Age {} years>'.format(self.year)
+    #Ownership
+    owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), index=True)
+    owner: so.Mapped[User] = so.relationship(back_populates='accidents')
+
+    def __repr__(self):
+        return '<Accident {}>'.format(self.id)
