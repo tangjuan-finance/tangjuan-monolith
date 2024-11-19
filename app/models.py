@@ -39,7 +39,11 @@ class User(UserMixin, TimestampMixin, db.Model):
     about_me: so.Mapped[Optional[str]] = so.mapped_column(sa.String(140))
     last_seen: so.Mapped[Optional[datetime]] = so.mapped_column(
         default=lambda: datetime.now(timezone.utc))
+    
+    #One-to-Many Ownership
     scenarios: so.WriteOnlyMapped['Scenario'] = so.relationship(
+        back_populates='owner')
+    expenses: so.WriteOnlyMapped['Expense'] = so.relationship(
         back_populates='owner')
 
     def __repr__(self):
@@ -61,10 +65,15 @@ def load_user(id):
 
 class Scenario(TimestampMixin, BaseDescriptionMixin,  db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    expense: so.Mapped[list["ScenarioExpense"]] = so.relationship(back_populates="scenario")
+
+    #Ownership
     owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
                                                index=True)
     owner: so.Mapped[User] = so.relationship(back_populates='scenarios')
+
+    #Relationship
+    expense: so.Mapped[list["ScenarioExpense"]] = so.relationship(back_populates="scenario")
+
 
     def __repr__(self):
         return '<Scenario {}>'.format(self.name)
@@ -82,6 +91,13 @@ class ScenarioExpense(BaseYearIntervalMixin, db.Model):
 class Expense(TimestampMixin, BaseYearIntervalMixin, BaseDescriptionMixin, db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     amount: so.Mapped[int] = so.mapped_column(sa.Integer)
+
+    #Ownership
+    owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
+                                               index=True)
+    owner: so.Mapped[User] = so.relationship(back_populates='expenses')
+
+    #Relationship to Scenario
     scenario: so.Mapped[list["ScenarioExpense"]] = so.relationship(back_populates="expense")
 
     def __repr__(self):
