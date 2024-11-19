@@ -45,6 +45,8 @@ class User(UserMixin, TimestampMixin, db.Model):
         back_populates='owner')
     expenses: so.WriteOnlyMapped['Expense'] = so.relationship(
         back_populates='owner')
+    salaries: so.WriteOnlyMapped['Salary'] = so.relationship(
+        back_populates='owner')
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -67,13 +69,12 @@ class Scenario(TimestampMixin, BaseDescriptionMixin,  db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
 
     #Ownership
-    owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
-                                               index=True)
+    owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),index=True)
     owner: so.Mapped[User] = so.relationship(back_populates='scenarios')
 
-    #Relationship
+    #Many-to-Many Relationship
     expense: so.Mapped[list["ScenarioExpense"]] = so.relationship(back_populates="scenario")
-
+    salary: so.Mapped[list["ScenarioSalary"]] = so.relationship(back_populates="scenario")
 
     def __repr__(self):
         return '<Scenario {}>'.format(self.name)
@@ -93,8 +94,7 @@ class Expense(TimestampMixin, BaseYearIntervalMixin, BaseDescriptionMixin, db.Mo
     amount: so.Mapped[int] = so.mapped_column(sa.Integer)
 
     #Ownership
-    owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
-                                               index=True)
+    owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), index=True)
     owner: so.Mapped[User] = so.relationship(back_populates='expenses')
 
     #Relationship to Scenario
@@ -102,3 +102,27 @@ class Expense(TimestampMixin, BaseYearIntervalMixin, BaseDescriptionMixin, db.Mo
 
     def __repr__(self):
         return '<Expense {}>'.format(self.name)
+
+class ScenarioSalary(BaseYearIntervalMixin, db.Model):
+    left_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("scenario.id"), primary_key=True)
+    right_id: so.Mapped[int] = so.mapped_column(
+        sa.ForeignKey("salary.id"), primary_key=True
+    )
+    upper_raise_rate: so.Mapped[float] = so.mapped_column(sa.Numeric)
+    lower_raise_rate: so.Mapped[float] = so.mapped_column(sa.Numeric)
+    scenario: so.Mapped["Scenario"] = so.relationship(back_populates="salary")
+    salary: so.Mapped["Salary"] = so.relationship(back_populates="scenario")
+
+class Salary(TimestampMixin, BaseYearIntervalMixin, BaseDescriptionMixin, db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    amount: so.Mapped[int] = so.mapped_column(sa.Integer)
+
+    #Ownership
+    owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), index=True)
+    owner: so.Mapped[User] = so.relationship(back_populates='salaries')
+
+    #Relationship to Scenario
+    scenario: so.Mapped[list["ScenarioSalary"]] = so.relationship(back_populates="salary")
+
+    def __repr__(self):
+        return '<Salary {}>'.format(self.name)
