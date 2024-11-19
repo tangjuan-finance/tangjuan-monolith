@@ -76,8 +76,9 @@ def load_user(id):
 class Scenario(TimestampMixin, BaseDescriptionMixin,  db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     retire_age: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Age.id),index=True)
-    accident_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("Accident.id"),index=True)
+    accident_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("accident.id"),index=True)
     accident: so.Mapped["Accident"] = so.relationship(back_populates='scenarios')
+    investment_ratio: so.Mapped[int] = so.mapped_column(sa.Numeric)
 
     #Ownership
     owner_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),index=True)
@@ -220,8 +221,6 @@ class Child(TimestampMixin, BaseDescriptionMixin, db.Model):
         return '<Child {}>'.format(self.name)
     
 class Accident(BaseDescriptionMixin, db.Model):
-    # explicitly set the __tablename__ as the Foreign Key for Scenario are forward referance. 
-    __tablename__ = "Accident"
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     scenarios: so.WriteOnlyMapped['Scenario'] = so.relationship(
         back_populates='accident')
