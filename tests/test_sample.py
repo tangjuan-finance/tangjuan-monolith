@@ -4,14 +4,6 @@ from app.models import User
 from config import Config
 
 
-def func(x):
-    return x + 1
-
-
-def test_answer():
-    assert func(3) == 5
-
-
 class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite://"
