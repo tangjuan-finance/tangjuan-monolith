@@ -20,7 +20,6 @@ class TestUserModelCase:
         user_from_db = db.session.scalar(
             sa.select(User).where(User.username == user.username)
         )
-
         # Assert
         assert user_from_db.username == user.username
         assert user_from_db.email == user.email
