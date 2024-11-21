@@ -209,6 +209,9 @@ class ScenarioHouse(db.Model):
     )
     buy_at_age: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Age.id))
     sell_at_age: so.Mapped[Optional[int]] = so.mapped_column(sa.ForeignKey(Age.id))
+    down_payment: so.Mapped[int] = so.mapped_column(sa.Numeric)
+    interest: so.Mapped[int] = so.mapped_column(sa.Numeric)
+    loan_term: so.Mapped[int] = so.mapped_column(sa.Integer)
     scenario: so.Mapped["Scenario"] = so.relationship(back_populates="house")
     house: so.Mapped["House"] = so.relationship(back_populates="scenario")
 
@@ -216,7 +219,8 @@ class ScenarioHouse(db.Model):
 class House(TimestampMixin, BaseDescriptionMixin, db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     amount: so.Mapped[int] = so.mapped_column(sa.Integer)
-    interest: so.Mapped[int] = so.mapped_column(sa.Integer)
+    down_payment: so.Mapped[int] = so.mapped_column(sa.Numeric)
+    interest: so.Mapped[int] = so.mapped_column(sa.Numeric)
     loan_term: so.Mapped[int] = so.mapped_column(sa.Integer)
     buy_at_age: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Age.id))
     sell_at_age: so.Mapped[Optional[int]] = so.mapped_column(sa.ForeignKey(Age.id))
