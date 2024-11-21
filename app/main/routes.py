@@ -58,9 +58,17 @@ def webhook():
 
 @bp.route("/", methods=["GET", "POST"])
 @bp.route("/index", methods=["GET", "POST"])
-@login_required
 def index():
-    return render_template("index.html", title="Home")
+    if current_user.is_authenticated:
+        return redirect(url_for("main.dashboard"))
+    else:
+        return render_template("index.html", title="Home")
+
+
+@bp.route("/dashboard", methods=["GET", "POST"])
+@login_required
+def dashboard():
+    return render_template("dashboard.html", title="Dashboard")
 
 
 @bp.route("/user/<username>")
