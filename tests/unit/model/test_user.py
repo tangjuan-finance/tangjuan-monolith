@@ -1,44 +1,7 @@
-import pytest
-from app import create_app, db
+from app import db
 from app.models import User
-from config import Config
 import sqlalchemy as sa
-
-
-class TestConfig(Config):
-    TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite://"
-
-
-@pytest.fixture(scope="module", autouse=True)
-def init_db():
-    app = create_app(TestConfig)
-    app_context = app.app_context()
-    app_context.push()
-    db.create_all()
-    yield
-    db.session.remove()
-    db.drop_all()
-    app_context.pop()
-
-
-def create_user(username, email, password, about_me):
-    u = User(username=username, email=email, about_me=about_me)
-    u.set_password(password)
-    db.session.add(u)
-    db.session.commit()
-    return u
-
-
-@pytest.fixture(scope="module")
-def new_user():
-    user = create_user(
-        username="john",
-        email="john@example.com",
-        password="cat",
-        about_me="about me is a long story. Just keep it cool.",
-    )
-    yield user
+from tests.unit.model.conftest import create_user
 
 
 class TestUserModelCase:
@@ -90,15 +53,16 @@ class TestUserModelCase:
         assert user_from_db.username == username
         assert user_from_db.about_me == about_me
 
-    def test_avatar(self, new_user):
-        assert new_user.avatar(128) == (
+    def test_avatar(self):
+        u = User(username="john", email="john@example.com")
+        assert u.avatar(128) == (
             "https://www.gravatar.com/avatar/"
             "d4c74594d841139328695756648b6bd6"
             "?d=identicon&s=128"
         )
 
 
-class TestModelCase:
+class TestUserOwnershipModelCase:
     def test_password_hashing(self):
         u = User(username="susan", email="susan@example.com")
         u.set_password("cat")
