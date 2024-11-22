@@ -1,14 +1,25 @@
 from datetime import datetime, timezone
-from flask import render_template, flash, redirect, url_for, request, current_app
+from flask import (
+    render_template,
+    flash,
+    redirect,
+    url_for,
+    request,
+    current_app,
+    session,
+)
 from flask_login import current_user, login_required
 import sqlalchemy as sa
 from app import db
-from app.main.forms import EditProfileForm
+from app.main.forms import EditProfileForm, IndexAnonyServiceForm
 from app.models import User
 from app.main import bp
 from app.lib import verify_signature
 import git
 import json
+import base64
+from io import BytesIO
+from matplotlib.figure import Figure
 
 
 @bp.before_app_request
@@ -62,7 +73,79 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for("main.dashboard"))
     else:
-        return render_template("index.html", title="Home")
+        form = IndexAnonyServiceForm()
+        if form.validate_on_submit():
+            breakpoint()
+            start_year = form.start_year.data
+            expense_amount = form.expense_amount.data
+            investment_amount = form.investment_amount.data
+            salary_amount = form.salary_amount.data
+            house_start_year = form.house_start_year.data
+            house_amount = form.house_amount.data
+            down_payment = form.down_payment.data
+            interest = form.interest.data
+            loan_term = form.loan_term.data
+            child_born_at_age = form.child_born_at_age.data
+            investment_ratio = form.investment_ratio.data
+            retire_age = form.retire_age.data
+
+            monthly_house_debt = (
+                (house_amount - down_payment) * (1 + interest * 0.01)
+            ) / (loan_term * 12)
+
+            x = range(start_year, 86)
+            y = list
+            breakpoint()
+            for this_year in x:
+                if this_year >= retire_age:
+                    salary_amount = 0
+
+                left = salary_amount - expense_amount
+
+                pay_houst_debt = (this_year >= house_start_year) & (
+                    this_year < house_start_year + loan_term
+                )
+                if pay_houst_debt:
+                    left = left - monthly_house_debt
+
+                raise_child = (this_year >= child_born_at_age) & (
+                    this_year < child_born_at_age + 22
+                )
+                if raise_child:
+                    left = left - 15000
+
+                saving = left * investment_ratio * 0.01
+
+                # Update
+                investment_amount = investment_amount * 1.05 * saving
+                y.append(investment_amount)
+
+                salary_amount = salary_amount * 1.01
+                expense_amount = expense_amount * 1.01
+            breakpoint()
+            # Generate the figure **without using pyplot**.
+            fig = Figure()
+            ax = fig.subplots()
+            ax.plot(x, y)
+            # Save it to a temporary buffer.
+            buf = BytesIO()
+            fig.savefig(buf, format="png")
+            # Embed the result in the html output.
+            data = base64.b64encode(buf.getbuffer()).decode("ascii")
+            session["data"] = data
+            return redirect(url_for("main.index"))
+        if "data" not in session:
+            # Generate the figure **without using pyplot**.
+            fig = Figure()
+            ax = fig.subplots()
+            ax.plot([1, 2], [5, 7])
+            # Save it to a temporary buffer.
+            buf = BytesIO()
+            fig.savefig(buf, format="png")
+            # Embed the result in the html output.
+            data = base64.b64encode(buf.getbuffer()).decode("ascii")
+
+        return render_template("index.html", form=form, data=data)
 
 
 @bp.route("/dashboard", methods=["GET", "POST"])
