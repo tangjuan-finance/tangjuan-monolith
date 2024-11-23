@@ -5,7 +5,6 @@ from flask import (
     redirect,
     url_for,
     request,
-    current_app,
     session,
 )
 from flask_login import current_user, login_required
@@ -14,9 +13,6 @@ from app import db
 from app.main.forms import EditProfileForm, IndexAnonyServiceForm
 from app.models import User
 from app.main import bp
-from app.lib import verify_signature
-import git
-import json
 import base64
 from io import BytesIO
 from matplotlib.figure import Figure
@@ -27,44 +23,6 @@ def before_request():
     if current_user.is_authenticated:
         current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
-
-
-@bp.route("/update_server", methods=["POST"])
-def webhook():
-    W_SECRET = current_app.config["W_SECRET"]
-    if request.method == "POST":
-        signature_header = request.headers.get("X-Hub-Signature-256")
-        # webhook content type should be application/json for request.data to have the payload
-        # request.data is empty in case of x-www-form-urlencoded
-        payload_body = request.data
-        verify_signature(payload_body, W_SECRET, signature_header)
-
-        payload = request.get_json()
-        if payload is None:
-            print("Deploy payload is empty: {payload}".format(payload=payload))
-            # abort(abort_code)
-            return "", 404
-
-        if payload["ref"] != "refs/heads/main":
-            return json.dumps({"msg": "Not main; ignoring"})
-        repo = git.Repo("./f4lazylifes")
-        origin = repo.remotes.origin
-
-        pull_info = origin.pull()
-
-        if len(pull_info) == 0:
-            return json.dumps({"msg": "Didn't pull any information from remote!"})
-        if pull_info[0].flags > 128:
-            return json.dumps({"msg": "Didn't pull any information from remote!"})
-
-        commit_hash = pull_info[0].commit.hexsha
-        build_commit = f'build_commit = "{commit_hash}"'
-        print(f"{build_commit}")
-        return "Updated PythonAnywhere server to commit {commit}".format(
-            commit=commit_hash
-        ), 200
-    else:
-        return "Wrong event type", 400
 
 
 @bp.route("/", methods=["GET", "POST"])
