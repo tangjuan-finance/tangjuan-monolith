@@ -13,6 +13,7 @@ from app import db
 from app.main.forms import EditProfileForm, IndexAnonyServiceForm
 from app.models import User
 from app.main import bp
+from app.main.helper import index_demo_data
 import base64
 from io import BytesIO
 from matplotlib.figure import Figure
@@ -71,7 +72,7 @@ def index():
     else:
         form = IndexAnonyServiceForm()
         if form.validate_on_submit():
-            breakpoint()
+            # breakpoint()
             start_year = form.start_year.data
             expense_amount = form.expense_amount.data
             investment_amount = form.investment_amount.data
@@ -131,141 +132,10 @@ def index():
             return redirect(url_for("main.index"))
 
         if "data" not in session:
-            # Generate the figure **without using pyplot**.
-            fig = Figure()
-            ax = fig.subplots()
-            x = [
-                26,
-                27,
-                28,
-                29,
-                30,
-                31,
-                32,
-                33,
-                34,
-                35,
-                36,
-                37,
-                38,
-                39,
-                40,
-                41,
-                42,
-                43,
-                44,
-                45,
-                46,
-                47,
-                48,
-                49,
-                50,
-                51,
-                52,
-                53,
-                54,
-                55,
-                56,
-                57,
-                58,
-                59,
-                60,
-                61,
-                62,
-                63,
-                64,
-                65,
-                66,
-                67,
-                68,
-                69,
-                70,
-                71,
-                72,
-                73,
-                74,
-                75,
-                76,
-                77,
-                78,
-                79,
-                80,
-                81,
-                82,
-                83,
-                84,
-                85,
-            ]
-            y = [
-                1068200.0,
-                1139992.0,
-                1215557.42,
-                1295086.7692,
-                1378780.100642,
-                1466847.48858592,
-                1559509.52975615,
-                1656997.86965231,
-                1749055.75517736,
-                1845913.61489908,
-                1932094.52943763,
-                2022785.53092993,
-                2118214.13413594,
-                2218619.24965773,
-                2324251.75393266,
-                2435375.08772814,
-                2552265.88456326,
-                2675214.63055353,
-                2804526.35724981,
-                2940521.36912149,
-                3083536.00741572,
-                3233923.45221194,
-                3392054.56458112,
-                3558318.77085523,
-                3733124.99111238,
-                3916902.61408843,
-                4110102.52083636,
-                4313198.15957103,
-                4526686.67425824,
-                4751090.08963578,
-                4997456.55548774,
-                5256386.65313489,
-                5528511.01725201,
-                5814491.83877848,
-                6115024.44297681,
-                6430838.94639653,
-                6762701.99668883,
-                7111418.59941436,
-                7477834.03619397,
-                7825687.99155526,
-                8206550.34499791,
-                8606351.59565134,
-                9026037.64617147,
-                9466601.68392499,
-                9929086.54512063,
-                10414587.19714605,
-                10924253.34502043,
-                11459292.1681687,
-                12020971.19403336,
-                12610621.31536581,
-                13229639.95838119,
-                13879494.40931982,
-                14561725.30733557,
-                15277950.31202761,
-                16029867.9543475,
-                16819261.68005057,
-                17648004.09531865,
-                18518061.42466279,
-                19431498.19171992,
-                20390482.13408815,
-            ]
-            ax.plot(x, y)
-            # Save it to a temporary buffer.
-            buf = BytesIO()
-            fig.savefig(buf, format="png")
-            # Embed the result in the html output.
-            data = base64.b64encode(buf.getbuffer()).decode("ascii")
+            data = index_demo_data
         else:
             data = session["data"]
+            session.pop("data", default=None)
         return render_template("index.html", form=form, data=data)
 
 
