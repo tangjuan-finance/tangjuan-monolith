@@ -13,9 +13,11 @@ from app import db
 from app.main.forms import EditProfileForm, IndexAnonyServiceForm
 from app.models import User
 from app.main import bp
+from app.main.helper import index_demo_data
 import base64
 from io import BytesIO
 from matplotlib.figure import Figure
+import numpy as np
 
 
 @bp.before_app_request
@@ -23,6 +25,43 @@ def before_request():
     if current_user.is_authenticated:
         current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
+
+
+# @bp.route('/set_email', methods=['GET', 'POST'])
+# def set_email():
+#     if request.method == 'POST':
+#         # Save the form data to the session object
+#         session['email'] = request.form['email_address']
+#         return redirect(url_for('main.get_email'))
+
+#     return """
+#         <form method="post">
+#             <label for="email">Enter your email address:</label>
+#             <input type="email" id="email" name="email_address" required />
+#             <button type="submit">Submit</button>
+#         </form>
+#         """
+# @bp.route('/get_email')
+# def get_email():
+#     return render_template_string("""
+#             {% if session['email'] %}
+#                 <h1>Welcome {{ session['email'] }}!</h1>
+#                 <p>
+#                     <a href="{{ url_for('main.delete_email') }}">
+#                         <button type="submit">Delete Email</button>
+#                     </a>
+#                 </p>
+#             {% else %}
+#                 <h1>Welcome! Please enter your email <a href="{{ url_for('main.set_email') }}">here.</a></h1>
+#             {% endif %}
+#         """)
+
+# @bp.route('/delete_email')
+# def delete_email():
+#     # Clear the email stored in the session object
+#     session.pop('email', default=None)
+#     flash("Session deleted!")
+#     return redirect(url_for('main.set_email'))
 
 
 @bp.route("/", methods=["GET", "POST"])
@@ -33,7 +72,7 @@ def index():
     else:
         form = IndexAnonyServiceForm()
         if form.validate_on_submit():
-            breakpoint()
+            # breakpoint()
             start_year = form.start_year.data
             expense_amount = form.expense_amount.data
             investment_amount = form.investment_amount.data
@@ -51,9 +90,8 @@ def index():
                 (house_amount - down_payment) * (1 + interest * 0.01)
             ) / (loan_term * 12)
 
-            x = range(start_year, 86)
-            y = list
-            breakpoint()
+            x = np.arange(start_year, 86, dtype=int)
+            y = np.empty(x.size)
             for this_year in x:
                 if this_year >= retire_age:
                     salary_amount = 0
@@ -75,12 +113,11 @@ def index():
                 saving = left * investment_ratio * 0.01
 
                 # Update
-                investment_amount = investment_amount * 1.05 * saving
-                y.append(investment_amount)
+                investment_amount = investment_amount * 1.05 + saving
+                y[this_year - start_year] = investment_amount
 
                 salary_amount = salary_amount * 1.01
                 expense_amount = expense_amount * 1.01
-            breakpoint()
             # Generate the figure **without using pyplot**.
             fig = Figure()
             ax = fig.subplots()
@@ -90,19 +127,15 @@ def index():
             fig.savefig(buf, format="png")
             # Embed the result in the html output.
             data = base64.b64encode(buf.getbuffer()).decode("ascii")
+
             session["data"] = data
             return redirect(url_for("main.index"))
-        if "data" not in session:
-            # Generate the figure **without using pyplot**.
-            fig = Figure()
-            ax = fig.subplots()
-            ax.plot([1, 2], [5, 7])
-            # Save it to a temporary buffer.
-            buf = BytesIO()
-            fig.savefig(buf, format="png")
-            # Embed the result in the html output.
-            data = base64.b64encode(buf.getbuffer()).decode("ascii")
 
+        if "data" not in session:
+            data = index_demo_data
+        else:
+            data = session["data"]
+            session.pop("data", default=None)
         return render_template("index.html", form=form, data=data)
 
 
