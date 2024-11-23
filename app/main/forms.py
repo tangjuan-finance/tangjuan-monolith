@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, DecimalField, IntegerField
+from wtforms import StringField, SubmitField, TextAreaField, FloatField, IntegerField
 from wtforms.validators import ValidationError, DataRequired, Length, NumberRange
 import sqlalchemy as sa
 from app import db
@@ -45,7 +45,7 @@ class IndexAnonyServiceForm(FlaskForm):
             NumberRange(min=0, max=10e12, message="輸入請介於 0 到百億之間"),
         ],
         description="通常會是您現在的總投資額。單位：元",
-        default=0,
+        default=1000000,
     )
     expense_amount = IntegerField(
         "起始生活費",
@@ -54,7 +54,7 @@ class IndexAnonyServiceForm(FlaskForm):
             NumberRange(min=0, max=10e7, message="輸入請介於 0 到百萬之間"),
         ],
         description="每月平均生活費。單位：元",
-        default=0,
+        default=10000,
     )
     salary_amount = IntegerField(
         "起始薪資",
@@ -74,16 +74,16 @@ class IndexAnonyServiceForm(FlaskForm):
         description="單位：歲",
         default=36,
     )
-    house_amount = DecimalField(
+    house_amount = FloatField(
         "房屋總價",
         validators=[
             DataRequired(),
             NumberRange(min=0, max=10e12, message="輸入請介於 0 到百億之間"),
         ],
         description="單位：元",
-        default=0,
+        default=10000000,
     )
-    down_payment = DecimalField(
+    down_payment = FloatField(
         "頭期款金額",
         validators=[
             DataRequired(),
@@ -92,7 +92,7 @@ class IndexAnonyServiceForm(FlaskForm):
         description="單位：元",
         default=2000000,
     )
-    interest = DecimalField(
+    interest = FloatField(
         "年利率",
         validators=[
             DataRequired(),
@@ -119,7 +119,7 @@ class IndexAnonyServiceForm(FlaskForm):
         description="單位：歲",
         default=34,
     )
-    investment_ratio = DecimalField(
+    investment_ratio = FloatField(
         "餘額轉投資比率",
         validators=[
             DataRequired(),
