@@ -13,7 +13,7 @@ class Config:
         "postgres://", "postgresql://"
     ) or "sqlite:///" + os.path.join(basedir, "app.db")
     SESSION_TYPE = "redis"
-    SESSION_REDIS = os.environ.get("SESSION_REDIS_URL") or Redis(
+    SESSION_REDIS = Redis.from_url(os.environ.get("SESSION_REDIS_URL")) or Redis(
         host="localhost", port=6379
     )
     SESSION_PERMANENT = False
