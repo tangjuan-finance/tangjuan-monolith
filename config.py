@@ -13,9 +13,10 @@ class Config:
         "postgres://", "postgresql://"
     ) or "sqlite:///" + os.path.join(basedir, "app.db")
     SESSION_TYPE = "redis"
-    SESSION_REDIS = os.environ.get("SESSION_REDIS_URL") or Redis(
-        host="localhost", port=6379
-    )
+    if os.environ.get("SESSION_REDIS_URL"):
+        SESSION_REDIS = Redis.from_url(os.environ.get("SESSION_REDIS_URL"))
+    else:
+        SESSION_REDIS = Redis(host="localhost", port=6379)
     SESSION_PERMANENT = False
 
     # Short live session for saving server-side session storing space
