@@ -5,7 +5,6 @@ from flask import (
     redirect,
     url_for,
     request,
-    session,
 )
 from flask_login import current_user, login_required
 import sqlalchemy as sa
@@ -13,11 +12,6 @@ from app import db
 from app.main.forms import EditProfileForm, IndexAnonyServiceForm
 from app.models import User
 from app.main import bp
-from app.main.helper import index_demo_data
-import base64
-from io import BytesIO
-from matplotlib.figure import Figure
-import numpy as np
 
 
 @bp.before_app_request
@@ -27,116 +21,67 @@ def before_request():
         db.session.commit()
 
 
-# @bp.route('/set_email', methods=['GET', 'POST'])
-# def set_email():
-#     if request.method == 'POST':
-#         # Save the form data to the session object
-#         session['email'] = request.form['email_address']
-#         return redirect(url_for('main.get_email'))
-
-#     return """
-#         <form method="post">
-#             <label for="email">Enter your email address:</label>
-#             <input type="email" id="email" name="email_address" required />
-#             <button type="submit">Submit</button>
-#         </form>
-#         """
-# @bp.route('/get_email')
-# def get_email():
-#     return render_template_string("""
-#             {% if session['email'] %}
-#                 <h1>Welcome {{ session['email'] }}!</h1>
-#                 <p>
-#                     <a href="{{ url_for('main.delete_email') }}">
-#                         <button type="submit">Delete Email</button>
-#                     </a>
-#                 </p>
-#             {% else %}
-#                 <h1>Welcome! Please enter your email <a href="{{ url_for('main.set_email') }}">here.</a></h1>
-#             {% endif %}
-#         """)
-
-# @bp.route('/delete_email')
-# def delete_email():
-#     # Clear the email stored in the session object
-#     session.pop('email', default=None)
-#     flash("Session deleted!")
-#     return redirect(url_for('main.set_email'))
-
-
 @bp.route("/", methods=["GET", "POST"])
-@bp.route("/index", methods=["GET", "POST"])
+@bp.route("/index", methods=["GET"])
 def index():
     if current_user.is_authenticated:
         return redirect(url_for("main.dashboard"))
     else:
         form = IndexAnonyServiceForm()
-        if form.validate_on_submit():
-            # breakpoint()
-            start_year = form.start_year.data
-            expense_amount = form.expense_amount.data
-            investment_amount = form.investment_amount.data
-            salary_amount = form.salary_amount.data
-            house_start_year = form.house_start_year.data
-            house_amount = form.house_amount.data
-            down_payment = form.down_payment.data
-            interest = form.interest.data
-            loan_term = form.loan_term.data
-            child_born_at_age = form.child_born_at_age.data
-            investment_ratio = form.investment_ratio.data
-            retire_age = form.retire_age.data
+        return render_template("index.html", form=form)
 
-            monthly_house_debt = (
-                (house_amount - down_payment) * (1 + interest * 0.01)
-            ) / (loan_term * 12)
 
-            x = np.arange(start_year, 86, dtype=int)
-            y = np.empty(x.size)
-            for this_year in x:
-                if this_year >= retire_age:
-                    salary_amount = 0
+@bp.route("/process", methods=["GET", "POST"])
+def process():
+    # Receive Data
+    input_data = request.json.get("input_data")
+    # Init
+    start_year = input_data["start_year"]
+    expense_amount = input_data["expense_amount"]
+    investment_amount = input_data["investment_amount"]
+    salary_amount = input_data["salary_amount"]
+    house_start_year = input_data["house_start_year"]
+    house_amount = input_data["house_amount"]
+    down_payment = input_data["down_payment"]
+    interest = input_data["interest"]
+    loan_term = input_data["loan_term"]
+    child_born_at_age = input_data["child_born_at_age"]
+    investment_ratio = input_data["investment_ratio"]
+    retire_age = input_data["retire_age"]
 
-                left = salary_amount - expense_amount
+    monthly_house_debt = ((house_amount - down_payment) * (1 + interest * 0.01)) / (
+        loan_term * 12
+    )
 
-                pay_houst_debt = (this_year >= house_start_year) & (
-                    this_year < house_start_year + loan_term
-                )
-                if pay_houst_debt:
-                    left = left - monthly_house_debt
+    data = list()
+    # Calculation
+    for this_year in range(start_year, 86):
+        if this_year >= retire_age:
+            salary_amount = 0
 
-                raise_child = (this_year >= child_born_at_age) & (
-                    this_year < child_born_at_age + 22
-                )
-                if raise_child:
-                    left = left - 15000
+        left = salary_amount - expense_amount
 
-                saving = left * investment_ratio * 0.01
+        pay_houst_debt = (this_year >= house_start_year) & (
+            this_year < house_start_year + loan_term
+        )
+        if pay_houst_debt:
+            left = left - monthly_house_debt
 
-                # Update
-                investment_amount = investment_amount * 1.05 + saving
-                y[this_year - start_year] = investment_amount
+        raise_child = (this_year >= child_born_at_age) & (
+            this_year < child_born_at_age + 22
+        )
+        if raise_child:
+            left = left - 15000
 
-                salary_amount = salary_amount * 1.01
-                expense_amount = expense_amount * 1.01
-            # Generate the figure **without using pyplot**.
-            fig = Figure()
-            ax = fig.subplots()
-            ax.plot(x, y)
-            # Save it to a temporary buffer.
-            buf = BytesIO()
-            fig.savefig(buf, format="png")
-            # Embed the result in the html output.
-            data = base64.b64encode(buf.getbuffer()).decode("ascii")
+        saving = left * investment_ratio * 0.01
 
-            session["data"] = data
-            return redirect(url_for("main.index"))
+        # Update
+        investment_amount = investment_amount * 1.05 + saving
+        data.append({"x": this_year, "y": round(investment_amount)})
 
-        if "data" not in session:
-            data = index_demo_data
-        else:
-            data = session["data"]
-            session.pop("data", default=None)
-        return render_template("index.html", form=form, data=data)
+        salary_amount = salary_amount * 1.01
+        expense_amount = expense_amount * 1.01
+    return {"data": data}
 
 
 @bp.route("/dashboard", methods=["GET", "POST"])
