@@ -59,6 +59,9 @@ def process():
         if this_year >= retire_age:
             salary_amount = 0
 
+        if this_year == house_start_year:
+            investment_amount -= down_payment
+
         left = salary_amount - expense_amount
 
         pay_houst_debt = (this_year >= house_start_year) & (
