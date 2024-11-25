@@ -1,6 +1,6 @@
 {% macro form_field(field, autofocus) %}
     {%- if field.type == 'BooleanField' %}
-    <div class="form-check mb-3 col-6">
+    <div class="form-check mb-3 col-4">
       {{ field(class='form-check-input') }}
       {{ field.label(class='form-check-label') }}
       {%- if field.description %}
@@ -10,7 +10,7 @@
       {%- endif %}
     </div>
     {%- elif field.type == 'IntegerField' %}
-    <div class="col-6">
+    <div class="col-4">
       {{ field.label(class='form-label mb-0') }}
       {%- if field.description %}
       <div>
@@ -20,7 +20,7 @@
       {{ field(class='form-control mt-2 mb-3') }}
     </div>
     {%- elif field.type == 'FloatField' %}
-    <div class="col-6">
+    <div class="col-4">
       {{ field.label(class='form-label mb-0') }}
       {%- if field.description %}
       <div>
@@ -30,7 +30,7 @@
       {{ field(class='form-control mt-2 mb-3') }}
     </div>
     {%- elif field.type == 'DecimalField' %}
-    <div class="col-6">
+    <div class="col-4">
       {{ field.label(class='form-label mb-0') }}
       {%- if field.description %}
       <div>

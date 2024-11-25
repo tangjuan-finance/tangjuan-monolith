@@ -3,18 +3,21 @@
 
 {% block content %}
     <h1>歡迎使用 F4LazyLifes!</h1>
-    <div class="row justify-content-start mx-2 my-4 p-3">
-        <div class="col-6 shadow-sm p-4 bg-light rounded">
+    <canvas id="plot"></canvas>
+    <div class="row justify-content-center mx-2 my-4 p-3">
+        <div class="col-9 shadow-sm p-4 bg-light rounded">
             {% if form %}
             {{ wtf.quick_form(form) }}
             {% endif %}
         </div>
-        <div id="plot" class="col-6"></div>
     </div>
 {% endblock %}
 {% block script %}
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Global variable for Chart.js instance
+    let chartInstance = null; 
+
     document.getElementById('data-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -53,13 +56,53 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ input_data: inputData })
         });
+
         const result = await response.json();
-    
-        // Render the plot
-        Plotly.newPlot('plot', [{
-            x: result.x,
-            y: result.y
-        }]);
-    });
+
+        const data = {
+                datasets: [{
+                    label: '當年度投資總額',
+                    data: result.data,
+                    backgroundColor: 'rgb(255, 99, 132)'
+                }],
+            };
+
+        // Plot
+        if(chartInstance){
+            // Update the Plot
+            chartInstance.data.datasets[0].data = result.data;
+            chartInstance.update();
+        } else {
+            // Create the Plot
+            const ctx = document.getElementById('plot');
+            chartInstance = new Chart(ctx, {
+                type: 'scatter',
+                // data: result.data,
+                data: data,
+                options: {
+                    scales: {
+                        x: {
+                        type: 'linear',
+                        position: 'bottom'
+                    }
+                    },plugins: {
+                    title: {
+                        display: true,
+                        text: '隨著年紀改變的投資總額'
+                    }, tooltip: {
+                        enabled: true,
+                        callbacks: {
+                            label: function (tooltipData) {
+                                const year = tooltipData.parsed.x
+                                const value = tooltipData.parsed.y
+
+                                return ` ${year}歲時有${value}元的投資`;
+                            },
+                        },
+                    }
+                    }
+                }});
+            }
+    })
     </script>
 {% endblock %}
