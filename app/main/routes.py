@@ -5,7 +5,6 @@ from flask import (
     redirect,
     url_for,
     request,
-    session,
 )
 from flask_login import current_user, login_required
 import sqlalchemy as sa
@@ -13,10 +12,6 @@ from app import db
 from app.main.forms import EditProfileForm, IndexAnonyServiceForm
 from app.models import User
 from app.main import bp
-from app.main.helper import index_demo_data
-import base64
-from io import BytesIO
-from matplotlib.figure import Figure
 import numpy as np
 
 
@@ -65,78 +60,69 @@ def before_request():
 
 
 @bp.route("/", methods=["GET", "POST"])
-@bp.route("/index", methods=["GET", "POST"])
+@bp.route("/index", methods=["GET"])
 def index():
     if current_user.is_authenticated:
         return redirect(url_for("main.dashboard"))
     else:
         form = IndexAnonyServiceForm()
-        if form.validate_on_submit():
-            # breakpoint()
-            start_year = form.start_year.data
-            expense_amount = form.expense_amount.data
-            investment_amount = form.investment_amount.data
-            salary_amount = form.salary_amount.data
-            house_start_year = form.house_start_year.data
-            house_amount = form.house_amount.data
-            down_payment = form.down_payment.data
-            interest = form.interest.data
-            loan_term = form.loan_term.data
-            child_born_at_age = form.child_born_at_age.data
-            investment_ratio = form.investment_ratio.data
-            retire_age = form.retire_age.data
+        return render_template("index.html", form=form)
 
-            monthly_house_debt = (
-                (house_amount - down_payment) * (1 + interest * 0.01)
-            ) / (loan_term * 12)
 
-            x = np.arange(start_year, 86, dtype=int)
-            y = np.empty(x.size)
-            for this_year in x:
-                if this_year >= retire_age:
-                    salary_amount = 0
+@bp.route("/process", methods=["GET", "POST"])
+def process():
+    # Receive Data
+    input_data = request.json.get("input_data")
+    # Init
+    start_year = input_data["start_year"]
+    expense_amount = input_data["expense_amount"]
+    investment_amount = input_data["investment_amount"]
+    salary_amount = input_data["salary_amount"]
+    house_start_year = input_data["house_start_year"]
+    house_amount = input_data["house_amount"]
+    down_payment = input_data["down_payment"]
+    interest = input_data["interest"]
+    loan_term = input_data["loan_term"]
+    child_born_at_age = input_data["child_born_at_age"]
+    investment_ratio = input_data["investment_ratio"]
+    retire_age = input_data["retire_age"]
 
-                left = salary_amount - expense_amount
+    monthly_house_debt = ((house_amount - down_payment) * (1 + interest * 0.01)) / (
+        loan_term * 12
+    )
 
-                pay_houst_debt = (this_year >= house_start_year) & (
-                    this_year < house_start_year + loan_term
-                )
-                if pay_houst_debt:
-                    left = left - monthly_house_debt
+    x = np.arange(start_year, 86, dtype=int)
+    y = np.empty(x.size)
 
-                raise_child = (this_year >= child_born_at_age) & (
-                    this_year < child_born_at_age + 22
-                )
-                if raise_child:
-                    left = left - 15000
+    # Calculation
+    for this_year in x:
+        if this_year >= retire_age:
+            salary_amount = 0
 
-                saving = left * investment_ratio * 0.01
+        left = salary_amount - expense_amount
 
-                # Update
-                investment_amount = investment_amount * 1.05 + saving
-                y[this_year - start_year] = investment_amount
+        pay_houst_debt = (this_year >= house_start_year) & (
+            this_year < house_start_year + loan_term
+        )
+        if pay_houst_debt:
+            left = left - monthly_house_debt
 
-                salary_amount = salary_amount * 1.01
-                expense_amount = expense_amount * 1.01
-            # Generate the figure **without using pyplot**.
-            fig = Figure()
-            ax = fig.subplots()
-            ax.plot(x, y)
-            # Save it to a temporary buffer.
-            buf = BytesIO()
-            fig.savefig(buf, format="png")
-            # Embed the result in the html output.
-            data = base64.b64encode(buf.getbuffer()).decode("ascii")
+        raise_child = (this_year >= child_born_at_age) & (
+            this_year < child_born_at_age + 22
+        )
+        if raise_child:
+            left = left - 15000
 
-            session["data"] = data
-            return redirect(url_for("main.index"))
+        saving = left * investment_ratio * 0.01
 
-        if "data" not in session:
-            data = index_demo_data
-        else:
-            data = session["data"]
-            session.pop("data", default=None)
-        return render_template("index.html", form=form, data=data)
+        # Update
+        investment_amount = investment_amount * 1.05 + saving
+        y[this_year - start_year] = investment_amount
+
+        salary_amount = salary_amount * 1.01
+        expense_amount = expense_amount * 1.01
+
+    return {"x": x.tolist(), "y": y.tolist()}
 
 
 @bp.route("/dashboard", methods=["GET", "POST"])

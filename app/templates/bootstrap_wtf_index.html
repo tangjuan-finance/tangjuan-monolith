@@ -19,6 +19,16 @@
       {%- endif %}
       {{ field(class='form-control mt-2 mb-3') }}
     </div>
+    {%- elif field.type == 'FloatField' %}
+    <div class="col-6">
+      {{ field.label(class='form-label mb-0') }}
+      {%- if field.description %}
+      <div>
+        <small class="text-secondary">{{ field.description }}</small>
+      </div>
+      {%- endif %}
+      {{ field(class='form-control mt-2 mb-3') }}
+    </div>
     {%- elif field.type == 'DecimalField' %}
     <div class="col-6">
       {{ field.label(class='form-label mb-0') }}
@@ -83,7 +93,7 @@
     {%- endif %}
 {% endmacro %}
 
-{% macro quick_form(form, action="", method="post", id="", novalidate=False) %}
+{% macro quick_form(form, action="", method="post", id="data-form", novalidate=False) %}
 <form
   {%- if action != None %} action="{{ action }}"{% endif -%}
   {%- if method %} method="{{ method }}"{% endif %}
