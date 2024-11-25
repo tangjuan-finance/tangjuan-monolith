@@ -14,6 +14,7 @@
 {% endblock %}
 {% block script %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
 <script>
     // Global variable for Chart.js instance
     let chartInstance = null; 
@@ -63,7 +64,9 @@
                 datasets: [{
                     label: '當年度投資總額',
                     data: result.data,
-                    backgroundColor: 'rgb(255, 99, 132)'
+                    backgroundColor: 'rgb(255, 99, 132)',
+                    borderColor: "rgba(255, 99, 132, 0.2)",
+                    showLine: true
                 }],
             };
 
@@ -82,24 +85,58 @@
                 options: {
                     scales: {
                         x: {
+                        title: {
+                            display: true,
+                            text: "年齡",
+                            font: {
+                                size: 18
+                            },
+                        },
                         type: 'linear',
                         position: 'bottom'
+                    }, y: {
+                        title: {
+                            display: true,
+                            text: "投資總額",
+                            font: {
+                                size: 18
+                            },
+                        },ticks: {
+                                callback: function(value, index, ticks) {
+                                    const new_value = Math.round((value / 10000)*10) / 10
+                                    return new_value + " 萬";
+                                }
+                            }
                     }
                     },plugins: {
                     title: {
                         display: true,
-                        text: '隨著年紀改變的投資總額'
+                        text: '隨著年紀改變的投資總額',
+                        font: {
+                            weight: "bold",
+                            size: 22
+                        },
                     }, tooltip: {
                         enabled: true,
                         callbacks: {
                             label: function (tooltipData) {
                                 const year = tooltipData.parsed.x
                                 const value = tooltipData.parsed.y
-
-                                return ` ${year}歲時有${value}元的投資`;
+                                const new_value = Math.round((value / 10000)*10) / 10
+                                return ` ${year} 歲時有 ${new_value} 萬元的投資`;
                             },
                         },
-                    }
+                    }, annotation: {
+                            annotations: {
+                                line1: {
+                                type: 'line',
+                                yMin: 0,
+                                yMax: 0,
+                                borderColor: 'rgba(255,193,7, 0.4)',
+                                borderWidth: 4,
+                                }
+                            }
+                            }
                     }
                 }});
             }

@@ -63,7 +63,7 @@ class IndexAnonyServiceForm(FlaskForm):
             NumberRange(min=0, max=10e12, message="輸入請介於 0 到百億之間"),
         ],
         description="通常會是您現在的月薪。單位：元",
-        default=36000,
+        default=50000,
     )
     house_start_year = IntegerField(
         "購屋時年齡",
