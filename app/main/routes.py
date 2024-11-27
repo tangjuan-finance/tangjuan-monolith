@@ -34,7 +34,7 @@ def index():
 @bp.route("/process", methods=["GET", "POST"])
 def process():
     # Receive Data
-    input_data = request.json.get("input_data")
+    input_data = request.json
     # Init
     start_year = input_data["start_year"]
     expense_amount = input_data["expense_amount"]

@@ -55,11 +55,10 @@
         const response = await fetch('/process', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ input_data: inputData })
+            body: JSON.stringify(inputData)
         });
 
         const result = await response.json();
-
         const data = {
                 datasets: [{
                     label: '當年度投資總額',
