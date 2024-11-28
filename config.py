@@ -9,6 +9,7 @@ load_dotenv(os.path.join(basedir, ".env"))
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "you-will-never-guess"
+    REGISTRATION_KEY = os.environ.get("REGISTRATION_KEY")
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "").replace(
         "postgres://", "postgresql://"
     ) or "sqlite:///" + os.path.join(basedir, "app.db")
