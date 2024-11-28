@@ -1,4 +1,4 @@
-from app import redis_client
+from flask import current_app
 
 
 def save_session_token(token: str) -> str:
@@ -6,10 +6,13 @@ def save_session_token(token: str) -> str:
     import uuid
 
     session_id = str(uuid.uuid4())
-    redis_client.set(session_id, token, ex=3600)  # Expiry: 1 hour
+    TOKEN_TTL = current_app.config["TOKEN_TTL"]
+    REDIS_CLIENT = current_app.config["REDIS_CLIENT"]
+    REDIS_CLIENT.set(session_id, token, ex=TOKEN_TTL)
     return session_id
 
 
 def get_session_token(session_id: str) -> str:
     """Retrieve a session token using the session ID."""
-    return redis_client.get(session_id)
+    REDIS_CLIENT = current_app.config["REDIS_CLIENT"]
+    return REDIS_CLIENT.get(session_id)

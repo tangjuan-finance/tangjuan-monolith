@@ -9,7 +9,6 @@ from sqlalchemy.orm import DeclarativeBase
 import logging
 from logging.handlers import RotatingFileHandler
 import os
-from flask_session import Session
 from flask_cors import CORS
 
 
@@ -31,7 +30,6 @@ login = LoginManager()
 login.login_view = "auth.login"
 login.login_message = "Please log in to access this page."
 moment = Moment()
-sess = Session()
 cors = CORS()  # Enable CORS for all routes
 
 
@@ -43,7 +41,6 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     login.init_app(app)
     moment.init_app(app)
-    sess.init_app(app)
     cors.init_app(app)
 
     from app.errors import bp as errors_bp

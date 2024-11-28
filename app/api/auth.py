@@ -3,10 +3,11 @@ from flask import request, jsonify
 from werkzeug.exceptions import BadRequest
 from app import db
 from app.models import User
+import sqlalchemy as sa
 
-# from app.api.utils.encryption import encrypt_data, decrypt_data
-from app.api.utils.encryption import decrypt_data
+from app.api.utils.encryption import encrypt_data, decrypt_data
 from app.api.utils.validation import validate_username, validate_email
+from app.api.services.redis_service import save_session_token
 from cryptography.fernet import InvalidToken
 
 # from app.api.services.email_service import send_email
@@ -70,7 +71,6 @@ def complete_registration(token):
 
         username = request.json.get("username")
         password = request.json.get("password")
-        breakpoint()
         # Check if both username and password provided
         if not username or not password:
             return jsonify({"error": "Username and password are required"}), 400
@@ -85,16 +85,18 @@ def complete_registration(token):
         # Save user to database
         db.session.add(new_user)
         db.session.commit()
-
+        verified_user = db.session.scalar(
+            sa.select(User).where(User.username == new_user.username)
+        )
         # Generate session token and save to Redis
-        # session_token = encrypt_data({"userid": new_user.id})
-        # session_id = save_session_token(session_token)
+        session_token = encrypt_data({"userid": verified_user.id})
+        session_id = save_session_token(session_token)
 
         # Return session ID to frontend
         return jsonify(
             {
                 "message": "Registration successful",
-                # "payload": {"session_id": session_id},
+                "payload": {"session_id": session_id},
             }
         ), 200
 
@@ -103,7 +105,6 @@ def complete_registration(token):
     except BadRequest as e:
         # Return error messages as JSON response
         return jsonify({"error": str(e)}), 400
-    except Exception as e:
+    except Exception:
         # Optionally log unexpected exceptions for debugging
-        bp.logger.error(f"Unexpected error during token decryption: {str(e)}")
         return jsonify({"error": "An unexpected error occurred"}), 500

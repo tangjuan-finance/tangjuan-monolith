@@ -1,10 +1,6 @@
 from cryptography.fernet import Fernet
 from flask import current_app
 
-ONE_HOUR = 60 * 60
-ONE_DAY = ONE_HOUR * 24
-ONE_WEEK = ONE_DAY * 7
-
 
 def encrypt_data(data: dict) -> str:
     """Encrypts dictionary data into a token."""
@@ -20,5 +16,7 @@ def decrypt_data(token: str) -> dict:
     import json
 
     KEY = current_app.config["REGISTRATION_KEY"]
+    TOKEN_TTL = current_app.config["TOKEN_TTL"]
+
     fernet = Fernet(KEY)
-    return json.loads(fernet.decrypt(token.encode(), ttl=ONE_WEEK).decode())
+    return json.loads(fernet.decrypt(token.encode(), ttl=TOKEN_TTL).decode())
