@@ -1,6 +1,7 @@
 from app.api import bp
-from flask import request, jsonify
-from werkzeug.exceptions import BadRequest
+from app.api.errors import ValidationError, AuthenticationError
+
+from flask import request, jsonify, url_for
 from app import db
 from app.models import User
 import sqlalchemy as sa
@@ -44,23 +45,22 @@ def create_registration():
     """Step 1: Receive email and send registration link."""
     email = request.json.get("email")
     if not email:
-        return jsonify({"error": "Email is required"}), 400
+        # Raise a BadRequest with a custom error message
+        raise ValidationError(errors={"email": "Email is required."})
 
-    try:
-        # Validate the email
-        validate_email(email)
+    # Validate the email
+    validate_email(email)
 
-        # Encrypt a registration token
-        # token = encrypt_data({"email": email})
-        # register_url = url_for("api_v1.complete_registration", token=token, _external=True)
-        # Send email
-        # send_email(email, "Complete Your Registration", f"Click here to register: {register_url}")
+    # Encrypt a registration token
+    token = encrypt_data({"email": email})
+    register_url = url_for("api_v1.complete_registration", token=token, _external=True)
 
-        return jsonify({"message": "Registration email sent"}), 200
+    # Only for dev, should delete later
+    print("register_url: " + register_url)
+    # Send email
+    # send_email(email, "Complete Your Registration", f"Click here to register: {register_url}")
 
-    except BadRequest as e:
-        # Return error messages as JSON response
-        return jsonify({"error": str(e)}), 400
+    return jsonify({"message": "Registration email sent"}), 200
 
 
 @bp.route("/register/<token>", methods=["POST"])
@@ -73,7 +73,7 @@ def complete_registration(token):
         password = request.json.get("password")
         # Check if both username and password provided
         if not username or not password:
-            return jsonify({"error": "Username and password are required"}), 400
+            raise ValidationError(message="Username and password are required")
 
         # Validate the username
         validate_username(username)
@@ -101,10 +101,4 @@ def complete_registration(token):
         ), 200
 
     except InvalidToken:
-        return jsonify({"error": "Invalid or expired token"}), 400
-    except BadRequest as e:
-        # Return error messages as JSON response
-        return jsonify({"error": str(e)}), 400
-    except Exception:
-        # Optionally log unexpected exceptions for debugging
-        return jsonify({"error": "An unexpected error occurred"}), 500
+        return AuthenticationError(message="Invalid or expired token")
