@@ -1,15 +1,16 @@
 from app.api import bp
-from app.api.errors import ValidationError, AuthenticationError
+from app.api.errors import ValidationError
 
 from flask import request, jsonify, url_for
 from app import db
 from app.models import User
 import sqlalchemy as sa
 
-from app.api.utils.encryption import encrypt_data, decrypt_data
-from app.api.utils.validation import validate_username, validate_email
+from app.api.utils.encryption import encrypt_data
+from app.api.utils.validation import validate_username, validate_email, validate_token
 from app.api.services.redis_service import save_session_token
-from cryptography.fernet import InvalidToken
+from app.api.services.email_service import send_email
+
 
 # from app.api.services.email_service import send_email
 # from app.api.services.redis_service import save_session_token, get_session_token
@@ -58,7 +59,9 @@ def create_registration():
     # Only for dev, should delete later
     print("register_url: " + register_url)
     # Send email
-    # send_email(email, "Complete Your Registration", f"Click here to register: {register_url}")
+    send_email(
+        email, "Complete Your Registration", f"Click here to register: {register_url}"
+    )
 
     return jsonify({"message": "Registration email sent"}), 200
 
@@ -66,39 +69,36 @@ def create_registration():
 @bp.route("/register/<token>", methods=["POST"])
 def complete_registration(token):
     """Step 2: Register the user with username and password."""
-    try:
-        data = decrypt_data(token)
+    # Validate the token
+    data = validate_token(token)
 
-        username = request.json.get("username")
-        password = request.json.get("password")
-        # Check if both username and password provided
-        if not username or not password:
-            raise ValidationError(message="Username and password are required")
+    username = request.json.get("username")
+    password = request.json.get("password")
+    # Check if both username and password provided
+    if not username or not password:
+        raise ValidationError(message="Username and password are required")
 
-        # Validate the username
-        validate_username(username)
+    # Validate the username
+    validate_username(username)
 
-        # Create user
-        new_user = User(email=data["email"], username=username)
-        new_user.set_password(password)
+    # Create user
+    new_user = User(email=data["email"], username=username)
+    new_user.set_password(password)
 
-        # Save user to database
-        db.session.add(new_user)
-        db.session.commit()
-        verified_user = db.session.scalar(
-            sa.select(User).where(User.username == new_user.username)
-        )
-        # Generate session token and save to Redis
-        session_token = encrypt_data({"userid": verified_user.id})
-        session_id = save_session_token(session_token)
+    # Save user to database
+    db.session.add(new_user)
+    db.session.commit()
+    verified_user = db.session.scalar(
+        sa.select(User).where(User.username == new_user.username)
+    )
+    # Generate session token and save to Redis
+    session_token = encrypt_data({"userid": verified_user.id})
+    session_id = save_session_token(session_token)
 
-        # Return session ID to frontend
-        return jsonify(
-            {
-                "message": "Registration successful",
-                "payload": {"session_id": session_id},
-            }
-        ), 200
-
-    except InvalidToken:
-        return AuthenticationError(message="Invalid or expired token")
+    # Return session ID to frontend
+    return jsonify(
+        {
+            "message": "Registration successful",
+            "payload": {"session_id": session_id},
+        }
+    ), 200
