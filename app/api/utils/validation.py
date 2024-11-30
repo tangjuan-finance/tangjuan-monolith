@@ -4,6 +4,7 @@ from app import db
 import sqlalchemy as sa
 from cryptography.fernet import InvalidToken
 from app.api.utils.encryption import decrypt_data
+import re
 
 
 def validate_username(username: str):
@@ -14,7 +15,12 @@ def validate_username(username: str):
 
 
 def validate_email(email: str):
-    """Check if email already exists."""
+    """Check if email format incorrect and already exists."""
+    # Step 1: Validate email format
+    if not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email):
+        raise ValidationError(errors={"email": "Invalid email format."})
+
+    # Step 2: Check if email already exists.
     user = db.session.scalar(sa.select(User).where(User.email == email))
     if user is not None:
         raise ValidationError(errors={"email": "Email address already registered"})
