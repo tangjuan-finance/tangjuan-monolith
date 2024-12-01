@@ -7,7 +7,6 @@ import datetime
 class BaseCustomHTTPException(HTTPException):
     """Base class for all custom HTTP exceptions."""
 
-    code = 400
     description = "An error occurred"
 
     def __init__(self, message=None, errors=None):
@@ -50,18 +49,32 @@ class AuthenticationError(BaseCustomHTTPException):
 
 @bp.errorhandler(BaseCustomHTTPException)
 def handle_custom_error(e):
-    response = jsonify(e.to_dict())
-    response.status_code = e.code
-    return response
+    return jsonify(e.to_dict()), e.code
 
 
 @bp.errorhandler(HTTPException)
 def handle_http_exception(e):
-    response = {"status": e.code, "error": e.name, "message": e.description}
+    response = {
+        "status": "error",
+        "statusCode": e.code,
+        "error": {
+            "code": e.name,
+            "message": e.description,
+            "timestamp": datetime.datetime.now(),
+        },
+    }
     return jsonify(response), e.code
 
 
 @bp.errorhandler(Exception)
 def handle_generic_exception(e):
-    response = {"status": 500, "error": "Internal Server Error", "message": str(e)}
+    response = {
+        "status": "error",
+        "statusCode": 500,
+        "error": {
+            "code": "Internal Server Error",
+            "message": e.description,
+            "timestamp": datetime.datetime.now(),
+        },
+    }
     return jsonify(response), 500

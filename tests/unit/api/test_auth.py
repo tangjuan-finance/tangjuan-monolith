@@ -144,7 +144,7 @@ class TestAuthRegistrationApiCase:
 
         # Assert: Check response status and message
         assert response.status_code == 200
-        assert response.json["error"]["message"] == "Registration successful"
+        assert response.json["message"] == "Registration successful"
 
         # Assert: Check session_id
         session_id = response.json["payload"]["session_id"]
@@ -161,7 +161,7 @@ class TestAuthRegistrationApiCase:
         user = sa.select(User).where(User.username == username)
         assert db.session.scalar(user) is not None
 
-    def test_fake_token_imcomplete_registration(self, client, monkeypatch):
+    def test_fake_token_imcomplete_registration(self, client):
         # Arrange: Set up test data
 
         fake_token = "hAAAAABnSHBURM-H9f5qoHC3pRXn55aJFEC-bjzlqJM8ew-ZXVk3XslLGpqc5h7nrBuy01xeAP7cQvJves1FadtAoQuqF0PZ1soxqyk9reWEy7D5KWbW2Qs\\="
