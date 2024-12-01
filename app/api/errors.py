@@ -1,6 +1,7 @@
 from werkzeug.exceptions import HTTPException
 from app.api import bp
 from flask import jsonify
+import datetime
 
 
 class BaseCustomHTTPException(HTTPException):
@@ -14,13 +15,22 @@ class BaseCustomHTTPException(HTTPException):
         super().__init__(description=message or self.description)
         self.errors = errors or {}
 
+    @property
+    def name(self):
+        """Use the class name as the error name."""
+        return self.__class__.__name__
+
     def to_dict(self):
         """Convert error to dictionary for response."""
         return {
-            "status": self.code,
-            "error": self.name,
-            "message": self.description,
-            "errors": self.errors,
+            "status": "error",
+            "statusCode": self.code,
+            "error": {
+                "code": self.name,
+                "message": self.description,
+                "fields": self.errors,
+                "timestamp": datetime.datetime.now(),
+            },
         }
 
 
