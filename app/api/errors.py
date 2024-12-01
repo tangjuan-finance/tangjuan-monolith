@@ -59,7 +59,7 @@ def handle_http_exception(e):
         "statusCode": e.code,
         "error": {
             "code": e.name,
-            "message": e.description,
+            "message": e.description or "",
             "timestamp": datetime.datetime.now(),
         },
     }
@@ -73,7 +73,6 @@ def handle_generic_exception(e):
         "statusCode": 500,
         "error": {
             "code": "Internal Server Error",
-            "message": e.description,
             "timestamp": datetime.datetime.now(),
         },
     }

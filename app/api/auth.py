@@ -52,6 +52,7 @@ def create_registration():
     # Validate the email
     validate_email(email)
 
+    print("email: " + email)
     # Encrypt a registration token
     token = encrypt_data({"email": email})
     register_url = url_for("api_v1.complete_registration", token=token, _external=True)
