@@ -93,8 +93,11 @@ class TestAuthRegistrationApiCase:
 
         # Assert: Check if the response status code is 200 (OK)
         assert response.status_code == 400
-        assert response.json["message"] == "Validation error occurred"
-        assert response.json["errors"]["email"] == "Email address already registered"
+        assert response.json["error"]["message"] == "Validation error occurred"
+        assert (
+            response.json["error"]["fields"]["email"]
+            == "Email address already registered"
+        )
 
     def test_create_registration_invaild_lose_email(self, client):
         # Arrange: Test valid email input
@@ -106,7 +109,7 @@ class TestAuthRegistrationApiCase:
 
         # Assert: Check if the response status code is 400 (BAD REQUEST)
         assert response.status_code == 400
-        assert response.json["errors"]["email"] == "Email is required."
+        assert response.json["error"]["fields"]["email"] == "Email is required."
 
     def test_complete_registration(self, client, monkeypatch):
         # Arrange: Mock storage for session tokens
@@ -141,7 +144,7 @@ class TestAuthRegistrationApiCase:
 
         # Assert: Check response status and message
         assert response.status_code == 200
-        assert response.json["message"] == "Registration successful"
+        assert response.json["error"]["message"] == "Registration successful"
 
         # Assert: Check session_id
         session_id = response.json["payload"]["session_id"]
@@ -175,4 +178,4 @@ class TestAuthRegistrationApiCase:
 
         # Assert: Check response status and message
         assert response.status_code == 401
-        assert response.json["message"] == "Invalid or expired token"
+        assert response.json["error"]["message"] == "Invalid or expired token"
