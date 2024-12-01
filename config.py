@@ -23,7 +23,3 @@ class Config:
         )
     else:
         REDIS_CLIENT = Redis(host="localhost", port=6379, decode_responses=True)
-    # Add SQLAlchemy configuration for connection pooling
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_pre_ping": True  # Enable pre-ping to check connections
-    }
