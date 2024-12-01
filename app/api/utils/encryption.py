@@ -8,12 +8,6 @@ def encrypt_data(data: dict) -> str:
 
     KEY = current_app.config["REGISTRATION_KEY"]
     fernet = Fernet(KEY)
-    print("Before fernet.encrypt")
-    print("json.dumps(data): " + json.dumps(data))
-    print(
-        "fernet.encrypt(json.dumps(data).encode()).decode(): "
-        + fernet.encrypt(json.dumps(data).encode()).decode()
-    )
     return fernet.encrypt(json.dumps(data).encode()).decode()
 
 
