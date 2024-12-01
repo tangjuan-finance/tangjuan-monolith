@@ -21,7 +21,6 @@ def validate_email(email: str):
         raise ValidationError(errors={"email": "Invalid email format."})
 
     # Step 2: Check if email already exists.
-    breakpoint()
     user = db.session.scalar(sa.select(User).where(User.email == email))
     if user is not None:
         raise ValidationError(errors={"email": "Email address already registered"})

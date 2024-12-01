@@ -48,10 +48,11 @@ def create_registration():
     if not email:
         # Raise a BadRequest with a custom error message
         raise ValidationError(errors={"email": "Email is required."})
-    breakpoint()
+
     # Validate the email
     validate_email(email)
 
+    print("email: " + email)
     # Encrypt a registration token
     token = encrypt_data({"email": email})
     register_url = url_for("api_v1.complete_registration", token=token, _external=True)
