@@ -22,6 +22,7 @@ def validate_email(email: str):
 
     # Step 2: Check if email already exists.
     user = db.session.scalar(sa.select(User).where(User.email == email))
+
     if user is not None:
         raise ValidationError(errors={"email": "Email address already registered"})
 
