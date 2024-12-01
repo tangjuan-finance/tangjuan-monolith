@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 from redis import Redis
-from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, ".env"))
@@ -9,15 +8,18 @@ load_dotenv(os.path.join(basedir, ".env"))
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "you-will-never-guess"
+    REGISTRATION_KEY = os.environ.get("REGISTRATION_KEY")
+    try:
+        TOKEN_TTL = int(os.environ.get("TOKEN_TTL"))
+    except ValueError:
+        TOKEN_TTL = 604800
+        # One Week
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "").replace(
         "postgres://", "postgresql://"
     ) or "sqlite:///" + os.path.join(basedir, "app.db")
-    SESSION_TYPE = "redis"
-    if os.environ.get("SESSION_REDIS_URL"):
-        SESSION_REDIS = Redis.from_url(os.environ.get("SESSION_REDIS_URL"))
+    if os.environ.get("TOKEN_REDIS_URL"):
+        REDIS_CLIENT = Redis.from_url(
+            os.environ.get("TOKEN_REDIS_URL"), decode_responses=True
+        )
     else:
-        SESSION_REDIS = Redis(host="localhost", port=6379)
-    SESSION_PERMANENT = False
-
-    # Short live session for saving server-side session storing space
-    PERMANENT_SESSION_LIFETIME = timedelta(hours=2)
+        REDIS_CLIENT = Redis(host="localhost", port=6379, decode_responses=True)
