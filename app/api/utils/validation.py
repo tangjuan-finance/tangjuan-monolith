@@ -5,7 +5,6 @@ import sqlalchemy as sa
 from cryptography.fernet import InvalidToken
 from app.api.utils.encryption import decrypt_data
 import re
-from app import create_app
 
 
 def validate_username(username: str):
@@ -22,21 +21,10 @@ def validate_email(email: str):
         raise ValidationError(errors={"email": "Invalid email format."})
 
     # Step 2: Check if email already exists.
-    # user = db.session.scalar(sa.select(User).where(User.email == email))
+    user = db.session.scalar(sa.select(User).where(User.email == email))
 
-    # if user is not None:
-    #     raise ValidationError(errors={"email": "Email address already registered"})
-
-    try:
-        user = db.session.scalar(sa.select(User).where(User.email == email))
-        if not user:
-            raise ValidationError(message="User not found")
-
-        # Continue with processing...
-
-    except Exception as e:
-        create_app.logger.error(f"Error during registration: {e}")
-        raise
+    if user is not None:
+        raise ValidationError(errors={"email": "Email address already registered"})
 
 
 def validate_token(token: str):
