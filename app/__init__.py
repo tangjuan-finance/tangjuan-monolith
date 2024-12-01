@@ -59,6 +59,8 @@ def create_app(config_class=Config):
 
     app.register_blueprint(api_bp, url_prefix="/api/v1")
 
+    # Need to be deleted
+    app.config["PROPAGATE_EXCEPTIONS"] = True
     app.debug = True
 
     # if not app.debug and not app.testing:
