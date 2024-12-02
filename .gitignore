@@ -164,3 +164,6 @@ cython_debug/
 
 # Local Data Control
 *.DS_Store
+
+# Database
+*.db
