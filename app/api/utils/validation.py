@@ -1,4 +1,8 @@
-from app.api.errors.bad_request import UserNameDuplicationError, EmailDuplicationError, EmailFormatError
+from app.api.errors.bad_request import (
+    UserNameDuplicationError,
+    EmailDuplicationError,
+    EmailFormatError,
+)
 from app.models import User
 from app import db
 import sqlalchemy as sa
@@ -20,12 +24,15 @@ def validate_email_format(email: str):
     if not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email):
         raise EmailFormatError(errors={"email": "Invalid email format"})
 
+
 def validate_email(email: str):
     """Check if email format incorrect and already exists."""
 
     user = db.session.scalar(sa.select(User).where(User.email == email))
     if user is not None:
-        raise EmailDuplicationError(errors={"email": "Email address already registered"})
+        raise EmailDuplicationError(
+            errors={"email": "Email address already registered"}
+        )
 
 
 def validate_token(token: str, mode: str):

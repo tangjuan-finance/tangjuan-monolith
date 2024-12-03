@@ -183,14 +183,19 @@ class TestAuthRegistrationApiCase:
         # Assert: Check response status and message
         assert response.status_code == 401
         assert response.json["error"]["code"] == "InvalidRegistrationTokenError"
-        assert response.json["error"]["message"] == "Invalid or expired registration token"
-        assert response.json["error"]["fields"]["token"] == "Invalid or expired registration token"
+        assert (
+            response.json["error"]["message"] == "Invalid or expired registration token"
+        )
+        assert (
+            response.json["error"]["fields"]["token"]
+            == "Invalid or expired registration token"
+        )
 
     def test_no_username_imcomplete_registration(self, client):
         # Arrange: Set up test data
 
         # email = 'textemail2@gmail.com'
-        token = 'gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E'
+        token = "gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E"
         register_url = url_for(
             "api_v1.complete_registration", token=token, _external=True
         )
@@ -212,7 +217,7 @@ class TestAuthRegistrationApiCase:
         # Arrange: Set up test data
 
         # email = 'textemail2@gmail.com'
-        token = 'gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E'
+        token = "gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E"
         register_url = url_for(
             "api_v1.complete_registration", token=token, _external=True
         )
@@ -252,6 +257,7 @@ class TestAuthRegistrationApiCase:
         assert response.json["error"]["message"] == "Username already taken"
         assert response.json["error"]["fields"]["username"] == "Username already taken"
 
+
 @pytest.mark.usefixtures("client")
 class TestAuthLoginApiCase:
     def test_complete_login(self, client):
@@ -261,9 +267,7 @@ class TestAuthLoginApiCase:
         email = "default@example.com"
         password = "secret"
 
-        user = db.session.scalar(
-                sa.select(User).where(User.email == email)
-            )
+        user = db.session.scalar(sa.select(User).where(User.email == email))
 
         # Act: Send a POST request to Login
         response = client.post(
@@ -277,7 +281,9 @@ class TestAuthLoginApiCase:
         session_id = response.json["payload"]["session_id"]
         session_token = get_session_token(session_id)
 
-        retrieve_user_id = validate_token(session_token, mode="authentication")["userid"]
+        retrieve_user_id = validate_token(session_token, mode="authentication")[
+            "userid"
+        ]
 
         assert user.id == retrieve_user_id
 
@@ -311,38 +317,39 @@ class TestAuthLoginApiCase:
         assert response.json["error"]["fields"]["password"] == "Password is required"
 
     def test_user_not_found_incomplete_login(self, client):
-            # Arrange: Create a user for test
+        # Arrange: Create a user for test
 
-            email = "youcantseeme@example.com"
-            password = "thereis*nothing*nothing"
+        email = "youcantseeme@example.com"
+        password = "thereis*nothing*nothing"
 
-            # Act: Send a POST request to Login
-            response = client.post(
-                url_for("api_v1.login"), json={"email": email, "password": password}
-            )
+        # Act: Send a POST request to Login
+        response = client.post(
+            url_for("api_v1.login"), json={"email": email, "password": password}
+        )
 
-            # Assert: Check response status and message
-            # Assert: Check response status and message
-            assert response.status_code == 400
-            assert response.json["error"]["code"] == "UserNotFoundError"
-            assert response.json["error"]["message"] == "User is not founded"
-            assert response.json["error"]["fields"]["user"] == "User is not founded"
+        # Assert: Check response status and message
+        # Assert: Check response status and message
+        assert response.status_code == 400
+        assert response.json["error"]["code"] == "UserNotFoundError"
+        assert response.json["error"]["message"] == "User is not founded"
+        assert response.json["error"]["fields"]["user"] == "User is not founded"
 
     def test_incorrect_pw_incomplete_login(self, client, monkeypatch):
-            # Arrange: Create a user for test
+        # Arrange: Create a user for test
 
-            # Use default user
-            email = "default@example.com"
-            incorrect_password = "bad_secret"
+        # Use default user
+        email = "default@example.com"
+        incorrect_password = "bad_secret"
 
-            # Act: Send a POST request to Login
-            response = client.post(
-                url_for("api_v1.login"), json={"email": email, "password": incorrect_password}
-            )
+        # Act: Send a POST request to Login
+        response = client.post(
+            url_for("api_v1.login"),
+            json={"email": email, "password": incorrect_password},
+        )
 
-            # Assert: Check response status and message
-            # Assert: Check response status and message
-            assert response.status_code == 400
-            assert response.json["error"]["code"] == "PasswordInvalidError"
-            assert response.json["error"]["message"] == "Password is incorrect"
-            assert response.json["error"]["fields"]["password"] == "Password is incorrect"
+        # Assert: Check response status and message
+        # Assert: Check response status and message
+        assert response.status_code == 400
+        assert response.json["error"]["code"] == "PasswordInvalidError"
+        assert response.json["error"]["message"] == "Password is incorrect"
+        assert response.json["error"]["fields"]["password"] == "Password is incorrect"

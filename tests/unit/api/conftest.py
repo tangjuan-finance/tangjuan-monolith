@@ -4,7 +4,6 @@ from tests.conftest import TestConfig
 from app.models import User
 
 
-
 @pytest.fixture(scope="module")
 def client():
     # Create the app and push the app context

@@ -11,7 +11,9 @@ def encrypt_data(data: dict, mode: str) -> str:
     elif mode == "authentication":
         KEY = current_app.config["AUTHENTICATION_KEY"]
     else:
-        raise ValueError(f"Invalid mode: {mode}. Expected 'registration' or 'authentication'.")
+        raise ValueError(
+            f"Invalid mode: {mode}. Expected 'registration' or 'authentication'."
+        )
     fernet = Fernet(KEY)
     return fernet.encrypt(json.dumps(data).encode()).decode()
 
@@ -25,7 +27,9 @@ def decrypt_data(token: str, mode: str) -> dict:
     elif mode == "authentication":
         KEY = current_app.config["AUTHENTICATION_KEY"]
     else:
-        raise ValueError(f"Invalid mode: {mode}. Expected 'registration' or 'authentication'.")
+        raise ValueError(
+            f"Invalid mode: {mode}. Expected 'registration' or 'authentication'."
+        )
     TOKEN_TTL = current_app.config["TOKEN_TTL"]
 
     fernet = Fernet(KEY)

@@ -1,6 +1,11 @@
 from app.api import bp
-from app.api.errors.bad_request import EmailNotFoundError, PasswordNotFoundError, \
-    UserNotFoundError, PasswordInvalidError, UserNameNotFoundError
+from app.api.errors.bad_request import (
+    EmailNotFoundError,
+    PasswordNotFoundError,
+    UserNotFoundError,
+    PasswordInvalidError,
+    UserNameNotFoundError,
+)
 from app.api.errors.unauthorized import InvalidRegistrationTokenError
 from cryptography.fernet import InvalidToken
 from flask import request, jsonify, url_for
@@ -9,13 +14,19 @@ from app.models import User
 import sqlalchemy as sa
 
 from app.api.utils.encryption import encrypt_data
-from app.api.utils.validation import validate_username, validate_email, validate_token, validate_email_format
+from app.api.utils.validation import (
+    validate_username,
+    validate_email,
+    validate_token,
+    validate_email_format,
+)
 from app.api.services.redis_service import save_session_token
 from app.api.services.email_service import send_email
 
 
 # from app.api.services.email_service import send_email
 # from app.api.services.redis_service import save_session_token, get_session_token
+
 
 @bp.route("/login", methods=["POST"])
 def login():
@@ -25,7 +36,7 @@ def login():
     if not email:
         # Raise a BadRequest with a custom error message
         raise EmailNotFoundError(errors={"email": "Email is required"})
-    
+
     validate_email_format(email)
 
     password = request.json.get("password")
@@ -34,18 +45,16 @@ def login():
         # Raise a BadRequest with a custom error message
         raise PasswordNotFoundError(errors={"password": "Password is required"})
 
-    user = db.session.scalar(
-                sa.select(User).where(User.email == email)
-            )
+    user = db.session.scalar(sa.select(User).where(User.email == email))
     if user is None:
         raise UserNotFoundError(errors={"user": "User is not founded"})
-    
+
     if not user.check_password(password):
         raise PasswordInvalidError(errors={"password": "Password is incorrect"})
-            #     flash("使用者名稱或密碼錯誤")
-            #     return redirect(url_for("auth.login"))
-            # login_user(user, remember=form.remember_me.data)
-            # next_page = request.args.get("next")
+        #     flash("使用者名稱或密碼錯誤")
+        #     return redirect(url_for("auth.login"))
+        # login_user(user, remember=form.remember_me.data)
+        # next_page = request.args.get("next")
 
     # Generate session token and save to Redis
     session_token = encrypt_data({"userid": user.id}, mode="authentication")
@@ -58,7 +67,6 @@ def login():
             "payload": {"session_id": session_id},
         }
     ), 200
-
 
 
 # @bp.route("/logout")
@@ -100,7 +108,9 @@ def complete_registration(token):
     try:
         data = validate_token(token, mode="registration")
     except InvalidToken:
-        raise InvalidRegistrationTokenError(errors={"token": "Invalid or expired registration token"})
+        raise InvalidRegistrationTokenError(
+            errors={"token": "Invalid or expired registration token"}
+        )
 
     username = request.json.get("username")
     password = request.json.get("password")
