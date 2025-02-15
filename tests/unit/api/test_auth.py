@@ -194,8 +194,9 @@ class TestAuthRegistrationApiCase:
     def test_no_username_imcomplete_registration(self, client):
         # Arrange: Set up test data
 
-        # email = 'textemail2@gmail.com'
-        token = "gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E"
+        email = "textemail2@gmail.com"
+        token = encrypt_data({"email": email}, mode="registration")
+        # token = "gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E"
         register_url = url_for(
             "api_v1.complete_registration", token=token, _external=True
         )
@@ -216,8 +217,9 @@ class TestAuthRegistrationApiCase:
     def test_no_password_imcomplete_registration(self, client):
         # Arrange: Set up test data
 
-        # email = 'textemail2@gmail.com'
-        token = "gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E"
+        email = "textemail2@gmail.com"
+        token = encrypt_data({"email": email}, mode="registration")
+        # token = "gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E"
         register_url = url_for(
             "api_v1.complete_registration", token=token, _external=True
         )
@@ -238,7 +240,9 @@ class TestAuthRegistrationApiCase:
     def test_duplicate_username_imcomplete_registration(self, client):
         # Arrange: Set up test data
 
-        token = "gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E"
+        email = "textemail2@gmail.com"
+        token = encrypt_data({"email": email}, mode="registration")
+        # token = "gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E"
         register_url = url_for(
             "api_v1.complete_registration", token=token, _external=True
         )

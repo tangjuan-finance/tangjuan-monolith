@@ -9,13 +9,13 @@ repos:
     # Run the formatter.
     - id: ruff-format
 
--   repo: local
-    hooks:
-    -   id: pytest-check
-        stages: [pre-push]
-        types: [python]
-        name: pytest-check
-        entry: python -m pytest -v tests/
-        language: system
-        pass_filenames: false
-        always_run: true
+- repo: local
+  hooks:
+  - id: pytest-check
+    stages: [pre-push]
+    types: [python]
+    name: pytest-check
+    entry: python -m pytest -v tests/
+    language: system
+    pass_filenames: false
+    always_run: true
