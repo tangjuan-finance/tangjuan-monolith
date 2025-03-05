@@ -4,10 +4,12 @@ from flask import jsonify
 import datetime
 from app.api.errors.base import BaseCustomHTTPException
 
+
 # Specific HTTP Exception
 @bp.errorhandler(BaseCustomHTTPException)
 def handle_custom_error(e):
     return jsonify(e.to_dict()), e.code
+
 
 # General HTTP Exception
 @bp.errorhandler(HTTPException)
@@ -22,6 +24,7 @@ def handle_http_exception(e):
         },
     }
     return jsonify(response), e.code
+
 
 # 500: Server Exception
 @bp.errorhandler(Exception)

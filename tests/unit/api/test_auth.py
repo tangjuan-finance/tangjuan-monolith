@@ -2,7 +2,9 @@ import pytest
 from app import db
 from app.models import User
 from flask import url_for
+from app.api.utils.validation import validate_token
 from app.api.utils.encryption import encrypt_data, decrypt_data
+from app.api.services.redis_service import get_session_token
 import sqlalchemy as sa
 import re
 
@@ -37,7 +39,7 @@ class TestAuthRegistrationApiCase:
 
         # Assert: Check if the response status code is 200 (OK)
         assert response.status_code == 200
-        assert response.json["message"] == "Registration email sent."
+        assert response.json["message"] == "Registration email sent"
 
         # Assert: Check if the email send is the same as the email provided
         assert mock_save_email_sent["to_email"] == valid_email
@@ -48,7 +50,7 @@ class TestAuthRegistrationApiCase:
         # Ensure the URL is provided
         if not expected_url:
             pytest.fail(
-                "The URL is not provided."
+                "The URL is not provided"
             )  # Raise an error if the URL is missing
 
         # Define the regular expression pattern
@@ -64,12 +66,12 @@ class TestAuthRegistrationApiCase:
             assert (
                 api_path == "api/v1/register"
             ), f"Expected 'api/v1/register', got '{api_path}'"
-            assert token is not None, "Token extraction failed."
+            assert token is not None, "Token extraction failed"
 
-            assert decrypt_data(token) == {"email": valid_email}
+            assert decrypt_data(token, mode="registration") == {"email": valid_email}
         else:
             pytest.fail(
-                "No match found for the URL."
+                "No match found for the URL"
             )  # Fail the test if regex doesn't match
 
     def test_create_registration_invaild_duplicate_email(self, client):
@@ -94,10 +96,10 @@ class TestAuthRegistrationApiCase:
         # Assert: Check if the response status code is 200 (OK)
         assert response.status_code == 400
         assert response.json["error"]["code"] == "EmailDuplicationError"
-        assert response.json["error"]["message"] == "Email address already registered."
+        assert response.json["error"]["message"] == "Email address already registered"
         assert (
             response.json["error"]["fields"]["email"]
-            == "Email address already registered."
+            == "Email address already registered"
         )
 
     def test_create_registration_invaild_lose_email(self, client):
@@ -111,7 +113,7 @@ class TestAuthRegistrationApiCase:
         # Assert: Check if the response status code is 400 (BAD REQUEST)
         assert response.status_code == 400
         assert response.json["error"]["code"] == "EmailNotFoundError"
-        assert response.json["error"]["fields"]["email"] == "Email is required."
+        assert response.json["error"]["fields"]["email"] == "Email is required"
 
     def test_complete_registration(self, client, monkeypatch):
         # Arrange: Mock storage for session tokens
@@ -131,7 +133,7 @@ class TestAuthRegistrationApiCase:
         username = "Jack"
         email = "jack@example.com"
         password = "dog"
-        token = encrypt_data({"email": email})
+        token = encrypt_data({"email": email}, mode="registration")
         register_url = url_for(
             "api_v1.complete_registration", token=token, _external=True
         )
@@ -146,7 +148,7 @@ class TestAuthRegistrationApiCase:
 
         # Assert: Check response status and message
         assert response.status_code == 200
-        assert response.json["message"] == "Registration successful."
+        assert response.json["message"] == "Registration successful"
 
         # Assert: Check session_id
         session_id = response.json["payload"]["session_id"]
@@ -155,7 +157,7 @@ class TestAuthRegistrationApiCase:
         # Assert: Verify session token
         session_token = mock_get_session_token(session_id)
         assert session_token is not None
-        assert decrypt_data(session_token) == {
+        assert decrypt_data(session_token, mode="authentication") == {
             "userid": User.query.filter_by(username=username).first().id
         }
 
@@ -180,13 +182,21 @@ class TestAuthRegistrationApiCase:
 
         # Assert: Check response status and message
         assert response.status_code == 401
-        assert response.json["error"]["message"] == "Invalid or expired token."
+        assert response.json["error"]["code"] == "InvalidRegistrationTokenError"
+        assert (
+            response.json["error"]["message"] == "Invalid or expired registration token"
+        )
+        assert (
+            response.json["error"]["fields"]["token"]
+            == "Invalid or expired registration token"
+        )
 
     def test_no_username_imcomplete_registration(self, client):
         # Arrange: Set up test data
 
-        # email = 'textemail2@gmail.com'
-        token = 'gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E'
+        email = "textemail2@gmail.com"
+        token = encrypt_data({"email": email}, mode="registration")
+        # token = "gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E"
         register_url = url_for(
             "api_v1.complete_registration", token=token, _external=True
         )
@@ -201,15 +211,15 @@ class TestAuthRegistrationApiCase:
         # Assert: Check response status and message
         assert response.status_code == 400
         assert response.json["error"]["code"] == "UserNameNotFoundError"
-        assert response.json["error"]["message"] == "Username is required."
-        assert response.json["error"]["fields"]["username"] == "Username is required."
-
+        assert response.json["error"]["message"] == "Username is required"
+        assert response.json["error"]["fields"]["username"] == "Username is required"
 
     def test_no_password_imcomplete_registration(self, client):
         # Arrange: Set up test data
 
-        # email = 'textemail2@gmail.com'
-        token = 'gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E'
+        email = "textemail2@gmail.com"
+        token = encrypt_data({"email": email}, mode="registration")
+        # token = "gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E"
         register_url = url_for(
             "api_v1.complete_registration", token=token, _external=True
         )
@@ -224,13 +234,15 @@ class TestAuthRegistrationApiCase:
         # Assert: Check response status and message
         assert response.status_code == 400
         assert response.json["error"]["code"] == "PasswordNotFoundError"
-        assert response.json["error"]["message"] == "Password is required."
-        assert response.json["error"]["fields"]["password"] == "Password is required."
+        assert response.json["error"]["message"] == "Password is required"
+        assert response.json["error"]["fields"]["password"] == "Password is required"
 
     def test_duplicate_username_imcomplete_registration(self, client):
         # Arrange: Set up test data
 
-        token = "gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E"
+        email = "textemail2@gmail.com"
+        token = encrypt_data({"email": email}, mode="registration")
+        # token = "gAAAAABnTY_M29aXWbyTFm35GR4GURbEjn5JYC3jhtmoa_g0gYgNs9EVJlYVsfAjfE-LKz1uVCvV801URdukQdHjOnuEFITPPL9Xpdsns2Mn2xaz4mdwtqmSDyBVRz9s-4EemY42Gd8E"
         register_url = url_for(
             "api_v1.complete_registration", token=token, _external=True
         )
@@ -246,5 +258,102 @@ class TestAuthRegistrationApiCase:
         # UserNameDuplicationError(errors={"username": "Username already taken."})
         assert response.status_code == 400
         assert response.json["error"]["code"] == "UserNameDuplicationError"
-        assert response.json["error"]["message"] == "Username already taken."
-        assert response.json["error"]["fields"]["username"] == "Username already taken."
+        assert response.json["error"]["message"] == "Username already taken"
+        assert response.json["error"]["fields"]["username"] == "Username already taken"
+
+
+@pytest.mark.usefixtures("client")
+class TestAuthLoginApiCase:
+    def test_complete_login(self, client):
+        # Arrange: Create a user for test
+
+        # Use default user
+        email = "default@example.com"
+        password = "secret"
+
+        user = db.session.scalar(sa.select(User).where(User.email == email))
+
+        # Act: Send a POST request to Login
+        response = client.post(
+            url_for("api_v1.login"), json={"email": email, "password": password}
+        )
+
+        # Assert: Check response status and message
+        assert response.status_code == 200
+        assert response.json["message"] == "Login successful"
+
+        session_id = response.json["payload"]["session_id"]
+        session_token = get_session_token(session_id)
+
+        retrieve_user_id = validate_token(session_token, mode="authentication")[
+            "userid"
+        ]
+
+        assert user.id == retrieve_user_id
+
+    def test_missing_info_incomplete_login(self, client):
+        # Arrange: Create a user for test
+
+        email = "loginbro@example.com"
+        password = "bro_is_c00l!"
+
+        # Act: Send a POST request to Login
+        response = client.post(
+            url_for("api_v1.login"), json={"email": "", "password": password}
+        )
+
+        # Assert: Check response status and message
+        # Assert: Check response status and message
+        assert response.status_code == 400
+        assert response.json["error"]["code"] == "EmailNotFoundError"
+        assert response.json["error"]["message"] == "Email is required"
+        assert response.json["error"]["fields"]["email"] == "Email is required"
+
+        # Act: Send a POST request to Login
+        response = client.post(
+            url_for("api_v1.login"), json={"email": email, "password": ""}
+        )
+
+        # Assert: Check response status and message
+        assert response.status_code == 400
+        assert response.json["error"]["code"] == "PasswordNotFoundError"
+        assert response.json["error"]["message"] == "Password is required"
+        assert response.json["error"]["fields"]["password"] == "Password is required"
+
+    def test_user_not_found_incomplete_login(self, client):
+        # Arrange: Create a user for test
+
+        email = "youcantseeme@example.com"
+        password = "thereis*nothing*nothing"
+
+        # Act: Send a POST request to Login
+        response = client.post(
+            url_for("api_v1.login"), json={"email": email, "password": password}
+        )
+
+        # Assert: Check response status and message
+        # Assert: Check response status and message
+        assert response.status_code == 400
+        assert response.json["error"]["code"] == "UserNotFoundError"
+        assert response.json["error"]["message"] == "User is not founded"
+        assert response.json["error"]["fields"]["user"] == "User is not founded"
+
+    def test_incorrect_pw_incomplete_login(self, client, monkeypatch):
+        # Arrange: Create a user for test
+
+        # Use default user
+        email = "default@example.com"
+        incorrect_password = "bad_secret"
+
+        # Act: Send a POST request to Login
+        response = client.post(
+            url_for("api_v1.login"),
+            json={"email": email, "password": incorrect_password},
+        )
+
+        # Assert: Check response status and message
+        # Assert: Check response status and message
+        assert response.status_code == 400
+        assert response.json["error"]["code"] == "PasswordInvalidError"
+        assert response.json["error"]["message"] == "Password is incorrect"
+        assert response.json["error"]["fields"]["password"] == "Password is incorrect"

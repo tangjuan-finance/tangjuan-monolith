@@ -1,6 +1,7 @@
 from werkzeug.exceptions import HTTPException
 import datetime
 
+
 class BaseCustomHTTPException(HTTPException):
     """Base class for all custom HTTP exceptions."""
 
